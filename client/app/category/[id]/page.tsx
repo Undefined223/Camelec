@@ -9,6 +9,7 @@ import Head from 'next/head';
 import Loading from '@/app/components/Loading';
 import GridView from '@/app/components/GridView'; // Import the new GridView component
 import ListView from '@/app/components/ListView'; // Import the new ListView component
+import { FaTh, FaList } from 'react-icons/fa'; // Import grid and list icons
 
 interface Product {
     _id: string;
@@ -124,15 +125,15 @@ const Page: NextPage<Props> = () => {
                         <div className="flex justify-end mb-4">
                             <button
                                 onClick={() => setViewMode('grid')}
-                                className={`px-4 py-2 ${viewMode === 'grid' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-                            >
-                                Grid View
+                                className={`px-4 py-2 flex items-center rounded-tl-full rounded-bl-full ${viewMode === 'grid' ? 'bg-amber-400 text-white' : 'bg-slate-200'}`}
+                            > 
+                                <FaTh className="mr-2" />
                             </button>
                             <button
                                 onClick={() => setViewMode('list')}
-                                className={`px-4 py-2 ${viewMode === 'list' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                                className={`px-4 py-2 flex items-center rounded-tr-full rounded-br-full ${viewMode === 'list' ? 'bg-amber-400 text-white' : 'bg-slate-200'}`}
                             >
-                                List View
+                                <FaList className="mr-2" /> 
                             </button>
                         </div>
                         {viewMode === 'grid' ? (

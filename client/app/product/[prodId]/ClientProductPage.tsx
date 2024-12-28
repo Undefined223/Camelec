@@ -80,7 +80,7 @@ export default function ClientProductPage({ prodId }: ClientProductPageProps) {
 
   return (
     <div className="min-h-screen p-9 sticky z-10">
-      <div className="bg-slate-700 rounded-xl py-8">
+      <div className="bg-white rounded-xl py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row -mx-4">
             <div className="md:flex-1 px-4">

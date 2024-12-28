@@ -16,46 +16,42 @@ const Sidebar: React.FC<SidebarProps> = ({
     brands,
     colors,
     availabilityOptions,
-    priceRange,
+    priceRange = [0, 1000], // Default value for priceRange
     maxPrice,
     onPriceChange,
     onBrandChange,
     onColorChange,
     onAvailabilityChange,
 }) => {
+    if (!Array.isArray(priceRange) || priceRange.length !== 2 || typeof priceRange[0] !== 'number' || typeof priceRange[1] !== 'number') {
+        throw new Error('priceRange must be an array of two numbers');
+    }
+
     return (
-        <div className="w-64 bg-slate-800 h-fit mt-2 ml-2 relative z-10 text-white p-4 rounded-xl">
-            <h2 className="text-xl font-bold mb-4">Filters</h2>
+        <div className="w-64 bg-[#001B40] h-fit mt-2 ml-2 relative z-10 text-white p-4 rounded-xl">
+            <h2 className="text-xl font-bold mb-4 text-[#1D2A71]">Filters</h2>
 
             <div className="mb-4">
-                <h3 className="text-lg font-semibold">Price Range (TND)</h3>
+                <h3 className="text-lg font-semibold text-[#1D2A71]">Price Range (TND)</h3>
                 <input
                     type="range"
                     min={0}
                     max={maxPrice}
                     value={priceRange[0]}
                     onChange={(e) => onPriceChange([+e.target.value, priceRange[1]])}
-                    className="w-full"
+                    className="w-full bg-[#FFDC5F]"
                 />
-                {/* <input
-                    type="range"
-                    min={0}
-                    max={maxPrice}
-                    value={priceRange[1]}
-                    onChange={(e) => onPriceChange([priceRange[0], +e.target.value])}
-                    className="w-full"
-                /> */}
                 <div className="flex justify-between items-center mt-2">
-                    <span>TND{priceRange[0]}</span>
-                    <span>TND{priceRange[1]}</span>
+                    <span className="text-[#F5C400]">TND{priceRange[0]}</span>
+                    <span className="text-[#F5C400]">TND{priceRange[1]}</span>
                 </div>
             </div>
 
             <div className="mb-4">
-                <h3 className="text-lg font-semibold">Brand</h3>
+                <h3 className="text-lg font-semibold text-[#1D2A71]">Brand</h3>
                 <select
                     onChange={(e) => onBrandChange(e.target.value)}
-                    className="w-full bg-slate-700 text-white rounded p-2"
+                    className="w-full bg-[#1D2A71] text-white rounded p-2"
                 >
                     <option value="">All Brands</option>
                     {brands.map(brand => (
@@ -65,10 +61,10 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
 
             <div className="mb-4">
-                <h3 className="text-lg font-semibold">Color</h3>
+                <h3 className="text-lg font-semibold text-[#1D2A71]">Color</h3>
                 <select
                     onChange={(e) => onColorChange(e.target.value)}
-                    className="w-full bg-slate-700 text-white rounded p-2"
+                    className="w-full bg-[#1D2A71] text-white rounded p-2"
                 >
                     <option value="">All Colors</option>
                     {colors.map(color => (
@@ -78,10 +74,10 @@ const Sidebar: React.FC<SidebarProps> = ({
             </div>
 
             <div className="mb-4">
-                <h3 className="text-lg font-semibold">Availability</h3>
+                <h3 className="text-lg font-semibold text-[#1D2A71]">Availability</h3>
                 <select
                     onChange={(e) => onAvailabilityChange(e.target.value)}
-                    className="w-full bg-slate-700 text-white rounded p-2"
+                    className="w-full bg-[#1D2A71] text-white rounded p-2"
                 >
                     <option value="">All</option>
                     {availabilityOptions.map(option => (
