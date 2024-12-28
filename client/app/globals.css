@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@font-face {
+  font-family: "Good Timing W00 Regular";
+  src: url("https://db.onlinewebfonts.com/t/c108d9f65bbf96412a067336eb5934d3.eot");
+  src: url("https://db.onlinewebfonts.com/t/c108d9f65bbf96412a067336eb5934d3.eot?#iefix") format("embedded-opentype"),
+    url("https://db.onlinewebfonts.com/t/c108d9f65bbf96412a067336eb5934d3.woff2") format("woff2"),
+    url("https://db.onlinewebfonts.com/t/c108d9f65bbf96412a067336eb5934d3.woff") format("woff"),
+    url("https://db.onlinewebfonts.com/t/c108d9f65bbf96412a067336eb5934d3.ttf") format("truetype"),
+    url("https://db.onlinewebfonts.com/t/c108d9f65bbf96412a067336eb5934d3.svg#Good Timing W00 Regular") format("svg");
+}
+
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))) rgb(var(--background-start-rgb));
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+
+
+.transition-opacity {
+  transition: opacity 0.8s ease-in-out;
+}
+
+
+@media (max-width: 760px) {
+  .modal {
+    width: 100%;
+    max-width: 100%;
+    min-width: 300px;
+  }
+}

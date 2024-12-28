@@ -1,0 +1,2 @@
+CONTAINER ID   IMAGE          COMMAND                  CREATED        STATUS                      PORTS                                                      NAMES
+16f04b7c7f6c   mongo:latest   "docker-entrypoint.s…"   27 hours ago   Up 16 minutes (unhealthy)   27017/tcp, 0.0.0.0:27018->27018/tcp, :::27018->27018/tcp   client-mongo-1
