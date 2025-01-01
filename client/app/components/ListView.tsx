@@ -1,6 +1,7 @@
-import React from 'react';
-import { Link, Copy, Heart, Search } from 'lucide-react';
+import React, { useContext } from 'react';
+import { Heart, ShoppingCart } from 'lucide-react';
 import NextLink from 'next/link';
+import UserContext from '@/app/context/InfoPlusProvider';
 
 interface Product {
     _id: string;
@@ -18,11 +19,24 @@ interface ListViewProps {
     products: Product[];
     hoveredProductId: string | null;
     setHoveredProductId: (id: string | null) => void;
-    addToCart: (product: Product) => void;
-    addToWishlist: (product: Product) => void;
 }
 
-const ListView: React.FC<ListViewProps> = ({ products, hoveredProductId, setHoveredProductId, addToCart, addToWishlist }) => {
+const ListView: React.FC<ListViewProps> = ({ products, hoveredProductId, setHoveredProductId }) => {
+    const { addToCart, addToWishlist, wishlist, cartProducts } = useContext(UserContext);
+
+    const isInWishlist = (productId: string) => wishlist.some(item => item._id === productId);
+    const isInCart = (productId: string) => cartProducts.some(item => item._id === productId);
+
+    const handleAddToCart = (e: React.MouseEvent, product: Product) => {
+        e.preventDefault();
+        addToCart(product);
+    };
+
+    const handleAddToWishlist = (e: React.MouseEvent, product: Product) => {
+        e.preventDefault();
+        addToWishlist(product);
+    };
+
     return (
         <div className="space-y-6">
             {products.map(product => (
@@ -50,18 +64,32 @@ const ListView: React.FC<ListViewProps> = ({ products, hoveredProductId, setHove
                                         }`}
                                     />
                                 )}
-                                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                                    <button className="p-2 bg-amber-400 rounded-lg hover:bg-amber-500 transform transition-all duration-200 hover:scale-110">
-                                        <Link size={20} className="text-white" />
+                                <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4 translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                                    <button 
+                                        onClick={(e) => handleAddToWishlist(e, product)}
+                                        className={`p-3 rounded-lg transform transition-all duration-200 hover:scale-110 ${
+                                            isInWishlist(product._id) 
+                                            ? 'bg-rose-500 hover:bg-rose-600' 
+                                            : 'bg-amber-400 hover:bg-amber-500'
+                                        }`}
+                                        aria-label="Add to wishlist"
+                                    >
+                                        <Heart 
+                                            size={24} 
+                                            className="text-white"
+                                            fill={isInWishlist(product._id) ? "white" : "none"}
+                                        />
                                     </button>
-                                    <button className="p-2 bg-amber-400 rounded-lg hover:bg-amber-500 transform transition-all duration-200 hover:scale-110 delay-75">
-                                        <Copy size={20} className="text-white" />
-                                    </button>
-                                    <button className="p-2 bg-amber-400 rounded-lg hover:bg-amber-500 transform transition-all duration-200 hover:scale-110 delay-100">
-                                        <Heart size={20} className="text-white" />
-                                    </button>
-                                    <button className="p-2 bg-amber-400 rounded-lg hover:bg-amber-500 transform transition-all duration-200 hover:scale-110 delay-150">
-                                        <Search size={20} className="text-white" />
+                                    <button 
+                                        onClick={(e) => handleAddToCart(e, product)}
+                                        className={`p-3 rounded-lg transform transition-all duration-200 hover:scale-110 ${
+                                            isInCart(product._id) 
+                                            ? 'bg-green-500 hover:bg-green-600' 
+                                            : 'bg-amber-400 hover:bg-amber-500'
+                                        }`}
+                                        aria-label="Add to cart"
+                                    >
+                                        <ShoppingCart size={24} className="text-white" />
                                     </button>
                                 </div>
                             </div>

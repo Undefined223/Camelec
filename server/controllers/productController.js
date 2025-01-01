@@ -41,21 +41,31 @@ module.exports = {
             })
             .catch((err) => console.log(err));
     },
-    getOneProduct: (req, res) => {
+     getOneProduct : (req, res) => {
         Product.findById(req.params.id)
+            .populate('subCategory') // Populate the subCategory field
             .then((oneProduct) => {
                 res.json(oneProduct);
             })
             .catch((err) => console.log(err));
     },
-     updateProduct: async (req, res) => {
+    updateProduct: async (req, res) => {
         try {
             const productId = req.params.id;
             const { name, price, category, brand, availability, description, colors = [], existingAvatars = '[]' } = req.body;
             const newAvatars = req.files ? req.files.map(file => file.path) : [];
     
-            // Parse existingAvatars as an array
-            const parsedExistingAvatars = JSON.parse(existingAvatars);
+            // Safely parse existingAvatars
+            let parsedExistingAvatars = [];
+            try {
+                parsedExistingAvatars = JSON.parse(existingAvatars);
+                if (!Array.isArray(parsedExistingAvatars)) {
+                    throw new Error("existingAvatars is not an array");
+                }
+            } catch (parseError) {
+                console.warn("Invalid JSON for existingAvatars, defaulting to an empty array:", parseError);
+                parsedExistingAvatars = [];
+            }
     
             const product = await Product.findById(productId);
             if (!product) {
@@ -78,6 +88,7 @@ module.exports = {
             res.status(500).json({ message: 'Server error', error });
         }
     },
+    
     
    
     getOneProductandDelete: async (req, res) => {
