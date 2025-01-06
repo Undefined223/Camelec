@@ -5,12 +5,14 @@ import axiosInstance from '@/app/components/AxiosInstance';
 import UserContext from '@/app/context/InfoPlusProvider';
 import Modal from '@/app/components/ui/modal';
 import Loading from '@/app/components/Loading';
+import { useRouter } from 'next/navigation';
 
 interface Product {
   _id: string;
   name: string;
   price: number;
   category: string;
+  subCategory: subCategory,
   brand: string;
   avatars: string[];
   availability: 'En stock' | 'On order' | 'Out of stock';
@@ -22,6 +24,10 @@ interface Product {
 interface ClientProductPageProps {
   prodId: string;
 }
+interface subCategory {
+  name: string,
+  _id: string,
+}
 
 export default function ClientProductPage({ prodId }: ClientProductPageProps) {
   const [product, setProduct] = useState<Product | null>(null);
@@ -32,7 +38,7 @@ export default function ClientProductPage({ prodId }: ClientProductPageProps) {
   const { addToCart, addToWishlist } = useContext(UserContext);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [loadingProduct, setLoadingProduct] = useState(true);
-
+  const router = useRouter()
   useEffect(() => {
     getProduct();
   }, [prodId]);
@@ -71,10 +77,17 @@ export default function ClientProductPage({ prodId }: ClientProductPageProps) {
     return colorMap[colorName.toLowerCase()] || 'bg-gray-300';
   };
 
-  const handleAddToCart = (product: Product) => {
+  console.log(product)
+  const handleAddToCart = (product: Product,) => {
     addToCart(product, selectedColor?.toString(), quantity);
     setIsModalOpen(true);
   };
+
+  const handleBuyNow = (product: Product) => {
+    addToCart(product, selectedColor?.toString(), quantity)
+    router.replace('/order')
+
+  }
 
   if (loadingProduct) {
     return <Loading />;
@@ -126,11 +139,10 @@ export default function ClientProductPage({ prodId }: ClientProductPageProps) {
               {['S', 'M', 'L'].map((size) => (
                 <button
                   key={size}
-                  className={`w-8 h-8 rounded-full ${
-                    selectedSize === size
+                  className={`w-8 h-8 rounded-full ${selectedSize === size
                       ? 'border-2 border-yellow'
                       : 'border border-slate-300'
-                  }`}
+                    }`}
                   onClick={() => setSelectedSize(size)}
                 >
                   {size}
@@ -143,21 +155,21 @@ export default function ClientProductPage({ prodId }: ClientProductPageProps) {
           {product?.colors && (
             <div className="mb-6 flex flex-wrap justify-start gap-6 items-center">
               <div className="flex gap-2 mt-2">
-                 {product?.colors && product.colors.length > 0 && (
-                <div className="mb-4 flex flex-wrap justify-start gap-6 items-center">
-                  <span className="font-bold text-slate-700">Select Color:</span>
-                  <div className="flex items-center mt-2 sticky z-30">
-                    {product.colors.map((color, index) => (
-                      <button
-                        key={index}
-                        className={`w-6 h-6 rounded-full ${getColorClass(color)} mr-2`}
-                        title={color}
-                        onClick={() => setSelectedColor(color)}
-                      ></button>
-                    ))}
+                {product?.colors && product.colors.length > 0 && (
+                  <div className="mb-4 flex flex-wrap justify-start gap-6 items-center">
+                    <span className="font-bold text-slate-700">Select Color:</span>
+                    <div className="flex items-center mt-2 sticky z-30">
+                      {product.colors.map((color, index) => (
+                        <button
+                          key={index}
+                          className={`w-6 h-6 rounded-full ${getColorClass(color)} mr-2`}
+                          title={color}
+                          onClick={() => setSelectedColor(color)}
+                        ></button>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
               </div>
             </div>
           )}
@@ -206,7 +218,9 @@ export default function ClientProductPage({ prodId }: ClientProductPageProps) {
             >
               Add to Cart
             </button>
-            <button className="w-full bg-yellow text-white py-3 rounded-full  hover:text-black">
+            <button
+            onClick={() => product && handleBuyNow(product)}
+            className="w-full bg-yellow text-white py-3 rounded-full  hover:text-black">
               Buy it now
             </button>
             <button

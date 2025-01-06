@@ -31,7 +31,7 @@ interface UserContextType {
     setCartProducts: React.Dispatch<React.SetStateAction<Product[]>>;
     wishlist: Product[];
     setWishlist: React.Dispatch<React.SetStateAction<Product[]>>;
-    addToCart: (product: Product, color?: string) => void; // Updated type
+    addToCart: (product: Product, color?: string, quantity?: number) => void; // Updated type
     addToWishlist: (product: Product) => void;
     addAllToCart: () => void;
     removeFromWishlist: (productId: string) => void;
