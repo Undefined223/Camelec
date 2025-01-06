@@ -25,17 +25,20 @@ const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
         setWishlist(storedWishlist);
     }, [pathname, searchParams]);
 
-    const addToCart = (product: Product, color?: string) => {
-        const updatedProduct = { ...product, color }; // Include the selected color
+    const addToCart = (product: Product, color?: string, quantity: number = 1) => {
+        const updatedProduct = { ...product, color, quantity }; // Include the selected color and quantity
         setCartProducts((prev) => {
-            const existingProductIndex = prev.findIndex((p) => p._id === updatedProduct._id);
+            const existingProductIndex = prev.findIndex((p) => p._id === updatedProduct._id && p.color === updatedProduct.color);
             if (existingProductIndex > -1) {
                 const updatedCart = [...prev];
-                updatedCart[existingProductIndex] = updatedProduct;
+                updatedCart[existingProductIndex] = {
+                    ...updatedCart[existingProductIndex],
+                    quantity: updatedCart[existingProductIndex].quantity + quantity
+                };
                 localStorage.setItem('cart', JSON.stringify(updatedCart));
                 return updatedCart;
             }
-            const updatedCart = [...prev, { ...updatedProduct, quantity: 1 }];
+            const updatedCart = [...prev, updatedProduct];
             localStorage.setItem('cart', JSON.stringify(updatedCart));
             return updatedCart;
         });
@@ -122,7 +125,7 @@ const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
                 clearWishlist,
                 removeFromCart,
                 updateCartItemQuantity,
-                clearCart, 
+                clearCart,
             }}
         >
             {children}

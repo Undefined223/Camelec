@@ -22,19 +22,27 @@ interface ListViewProps {
 }
 
 const ListView: React.FC<ListViewProps> = ({ products, hoveredProductId, setHoveredProductId }) => {
-    const { addToCart, addToWishlist, wishlist, cartProducts } = useContext(UserContext);
+    const { addToCart, addToWishlist, removeFromWishlist, removeFromCart, wishlist, cartProducts } = useContext(UserContext);
 
     const isInWishlist = (productId: string) => wishlist.some(item => item._id === productId);
     const isInCart = (productId: string) => cartProducts.some(item => item._id === productId);
 
-    const handleAddToCart = (e: React.MouseEvent, product: Product) => {
+    const handleToggleWishlist = (e: React.MouseEvent, product: Product) => {
         e.preventDefault();
-        addToCart(product);
+        if (isInWishlist(product._id)) {
+            removeFromWishlist(product._id);
+        } else {
+            addToWishlist(product);
+        }
     };
 
-    const handleAddToWishlist = (e: React.MouseEvent, product: Product) => {
+    const handleToggleCart = (e: React.MouseEvent, product: Product) => {
         e.preventDefault();
-        addToWishlist(product);
+        if (isInCart(product._id)) {
+            removeFromCart(product._id);
+        } else {
+            addToCart(product);
+        }
     };
 
     return (
@@ -65,29 +73,29 @@ const ListView: React.FC<ListViewProps> = ({ products, hoveredProductId, setHove
                                     />
                                 )}
                                 <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-4 translate-y-12 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                                    <button 
-                                        onClick={(e) => handleAddToWishlist(e, product)}
+                                    <button
+                                        onClick={(e) => handleToggleWishlist(e, product)}
                                         className={`p-3 rounded-lg transform transition-all duration-200 hover:scale-110 ${
-                                            isInWishlist(product._id) 
-                                            ? 'bg-rose-500 hover:bg-rose-600' 
+                                            isInWishlist(product._id)
+                                            ? 'bg-rose-500 hover:bg-rose-600'
                                             : 'bg-amber-400 hover:bg-amber-500'
                                         }`}
-                                        aria-label="Add to wishlist"
+                                        aria-label="Toggle wishlist"
                                     >
-                                        <Heart 
-                                            size={24} 
+                                        <Heart
+                                            size={24}
                                             className="text-white"
                                             fill={isInWishlist(product._id) ? "white" : "none"}
                                         />
                                     </button>
-                                    <button 
-                                        onClick={(e) => handleAddToCart(e, product)}
+                                    <button
+                                        onClick={(e) => handleToggleCart(e, product)}
                                         className={`p-3 rounded-lg transform transition-all duration-200 hover:scale-110 ${
-                                            isInCart(product._id) 
-                                            ? 'bg-green-500 hover:bg-green-600' 
+                                            isInCart(product._id)
+                                            ? 'bg-green-500 hover:bg-green-600'
                                             : 'bg-amber-400 hover:bg-amber-500'
                                         }`}
-                                        aria-label="Add to cart"
+                                        aria-label="Toggle cart"
                                     >
                                         <ShoppingCart size={24} className="text-white" />
                                     </button>

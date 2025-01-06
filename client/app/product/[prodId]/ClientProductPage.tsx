@@ -16,6 +16,7 @@ interface Product {
   availability: 'En stock' | 'On order' | 'Out of stock';
   description: string;
   colors: string[];
+  quantity?: number; // Add quantity field
 }
 
 interface ClientProductPageProps {
@@ -71,7 +72,7 @@ export default function ClientProductPage({ prodId }: ClientProductPageProps) {
   };
 
   const handleAddToCart = (product: Product) => {
-    addToCart(product, selectedColor?.toString());
+    addToCart(product, selectedColor?.toString(), quantity);
     setIsModalOpen(true);
   };
 

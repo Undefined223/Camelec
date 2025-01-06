@@ -195,7 +195,7 @@ const Navbar: React.FC = () => {
             initial="hidden"
             animate="visible"
         >
-            <div className="w-full p-1 bg-white border-b-[1px] border-[#92929277] pr-10 flex justify-between items-center">
+            <div className="w-full p-1 bg-white border-b-[1px] border-[#92929277] pr-10 flex justify-between items-center relative z-9999">
                 <button onClick={toggleMobileMenu} className="md:hidden text-2xl cursor-pointer mb-1 text-[#2DACD9]">
                     <FontAwesomeIcon icon={faBars} />
                 </button>
