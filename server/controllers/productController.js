@@ -5,9 +5,9 @@ const SubCategory = require('../models/subCategoryModel');
 module.exports = {
     createProduct: async (req, res) => {
         console.log('Request Body:', req.body);
-        console.log(req.files)
+        console.log(req.files);
         try {
-            const { name, price, category, brand, availability, description, subCategory } = req.body;
+            const { name, price, category, sizes, brand, availability, description, subCategory } = req.body;
             const avatars = req.files.map(file => file.path);
             const colors = req.body.colors; // This will be an array if there are multiple colors
 
@@ -25,6 +25,7 @@ module.exports = {
                 subCategory,
                 description,
                 colors: Array.isArray(colors) ? colors : [colors], // Ensure colors is always an array
+                sizes: Array.isArray(sizes) ? sizes : [sizes],
             });
 
             res.json(newProduct);
@@ -41,7 +42,8 @@ module.exports = {
             })
             .catch((err) => console.log(err));
     },
-     getOneProduct : (req, res) => {
+
+    getOneProduct: (req, res) => {
         Product.findById(req.params.id)
             .populate('subCategory') // Populate the subCategory field
             .then((oneProduct) => {
@@ -49,11 +51,17 @@ module.exports = {
             })
             .catch((err) => console.log(err));
     },
+
     updateProduct: async (req, res) => {
         try {
             const productId = req.params.id;
-            const { name, price, category, brand, availability, description, colors = [], existingAvatars = '[]' } = req.body;
+            const { name, price, category, brand, availability, description, colors = [], sizes = [], existingAvatars = '[]' } = req.body;
             const newAvatars = req.files ? req.files.map(file => file.path) : [];
+    
+            // Log the received data for debugging
+            console.log('Received data for update:', {
+                name, price, category, brand, availability, description, colors, sizes, existingAvatars, newAvatars
+            });
     
             // Safely parse existingAvatars
             let parsedExistingAvatars = [];
@@ -67,6 +75,9 @@ module.exports = {
                 parsedExistingAvatars = [];
             }
     
+            // Log the parsed existing avatars
+            console.log('Parsed existing avatars:', parsedExistingAvatars);
+    
             const product = await Product.findById(productId);
             if (!product) {
                 return res.status(404).json({ message: 'Product not found' });
@@ -79,7 +90,13 @@ module.exports = {
             product.availability = availability;
             product.description = description;
             product.colors = Array.isArray(colors) ? colors : [colors];
+            product.sizes = Array.isArray(sizes) ? sizes : [sizes];
+    
+            // Combine existing and new avatars
             product.avatars = [...parsedExistingAvatars, ...newAvatars];
+    
+            // Log the combined avatars
+            console.log('Combined avatars:', product.avatars);
     
             await product.save();
             res.status(200).json({ message: 'Product updated successfully', product });
@@ -90,7 +107,7 @@ module.exports = {
     },
     
     
-   
+
     getOneProductandDelete: async (req, res) => {
         try {
             const product = await Product.findByIdAndDelete(req.params.id);
@@ -103,23 +120,24 @@ module.exports = {
             res.status(500).json({ error: 'Failed to delete product' });
         }
     },
+
     getProductsBySubcategory: async (req, res, next) => {
         try {
             // Find the subcategory by its ID
             const subcategory = await SubCategory.findById(req.params.id);
-    
+
             if (!subcategory) {
                 return res.status(400).json({ message: "Failed to find the subcategory." });
             }
-    
+
             // Find products that match the subcategory's ObjectId
             const products = await Product.find({ subCategory: subcategory._id });
-    
+
             // If no products are found, return a 404 status
             if (products.length === 0) {
                 return res.status(404).json({ message: "No products found for this subcategory." });
             }
-    
+
             // Return the filtered products
             return res.status(200).json(products);
         } catch (err) {
@@ -127,13 +145,14 @@ module.exports = {
             next(err);
         }
     },
+
     getProductsSpecificCategory: async (req, res, next) => {
         try {
             const category = await Category.findById(req.params.id);
-            if (!category) return res.status(400).json({ message: "failed to get Category" });
+            if (!category) return res.status(400).json({ message: "Failed to get Category" });
 
             const allProducts = await Product.find({});
-            if (!allProducts) return res.status(400).json({ message: "failed to get products" });
+            if (!allProducts) return res.status(400).json({ message: "Failed to get products" });
 
             const products = allProducts.filter(
                 (product) => product.category === category.name
@@ -143,8 +162,9 @@ module.exports = {
             next(err);
         }
     },
+
     searchProducts: async (req, res) => {
-        console.log(req.query)
+        console.log(req.query);
         try {
             const { name } = req.query;
 
@@ -170,5 +190,4 @@ module.exports = {
             res.status(500).json({ message: 'Server error', err });
         }
     }
-
 };

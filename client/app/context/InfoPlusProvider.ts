@@ -1,7 +1,7 @@
 import { createContext, Dispatch, SetStateAction } from "react";
 
 interface User {
-    _id: string; 
+    _id: string;
     name: string;
     email: string;
     pic: string;
@@ -20,8 +20,9 @@ interface Product {
     availability: 'En stock' | 'On order' | 'Out of stock';
     description: string;
     colors: string[];
-    selectedColor?: string; 
-    quantity?: number
+    selectedColor?: string;
+    quantity?: number;
+    color?: string; // Add the color property
 }
 
 interface UserContextType {
@@ -31,7 +32,7 @@ interface UserContextType {
     setCartProducts: React.Dispatch<React.SetStateAction<Product[]>>;
     wishlist: Product[];
     setWishlist: React.Dispatch<React.SetStateAction<Product[]>>;
-    addToCart: (product: Product, color?: string, quantity?: number) => void; // Updated type
+    addToCart: (product: Product, color?: string, quantity?: number) => void;
     addToWishlist: (product: Product) => void;
     addAllToCart: () => void;
     removeFromWishlist: (productId: string) => void;
@@ -40,7 +41,6 @@ interface UserContextType {
     updateCartItemQuantity: (productId: string, newQuantity: number) => void;
     clearCart: () => void;
 }
-
 
 const UserContext = createContext<UserContextType>({
     user: null,
@@ -56,7 +56,7 @@ const UserContext = createContext<UserContextType>({
     clearWishlist: () => { },
     removeFromCart: () => { },
     updateCartItemQuantity: () => { },
-    clearCart: () => {}, // Add this line
+    clearCart: () => {},
 });
 
 export default UserContext;

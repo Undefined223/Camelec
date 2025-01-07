@@ -18,6 +18,8 @@ interface Product {
   availability: 'En stock' | 'On order' | 'Out of stock';
   description: string;
   colors: string[];
+  sizes: string[];
+
   quantity?: number; // Add quantity field
 }
 
@@ -136,7 +138,7 @@ export default function ClientProductPage({ prodId }: ClientProductPageProps) {
           <div className="mb-6 flex flex-wrap justify-start gap-6 items-center">
             <span className="text-slate-700">Size:</span>
             <div className="flex gap-2 mt-2">
-              {['S', 'M', 'L'].map((size) => (
+              {product?.sizes.map((size) => (
                 <button
                   key={size}
                   className={`w-8 h-8 rounded-full ${selectedSize === size
@@ -236,7 +238,7 @@ export default function ClientProductPage({ prodId }: ClientProductPageProps) {
       {/* Product Description */}
       <div className="max-w-6xl mx-auto mt-12">
         <div className="flex justify-start">
-          <div className="bg-yellow text-white px-10 py-4 rounded-t-lg hover:bg-[#1e2a4a] transition-colors duration-300">
+          <div className="bg-yellow text-white px-10 py-4 rounded-t-lg hover:bg-[#2DACD9] transition-colors duration-300">
             Product Description
           </div>
         </div>
@@ -249,7 +251,7 @@ export default function ClientProductPage({ prodId }: ClientProductPageProps) {
 
       {/* Modal */}
       <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <div className="text-center">
+        <div className="text-center bg-white">
           <h2 className="text-xl font-bold mb-4">Product Added to Cart</h2>
           {selectedColor && (
             <p className="mb-4">

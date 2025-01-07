@@ -55,7 +55,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, children, zIndex = 50 })
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: -50, opacity: 0 }}
                         onClick={(e) => e.stopPropagation()}
-                        className="bg-black-2  shadow-lg rounded-lg p-6 w-full max-w-md mx-4"
+                        className="bg-white  shadow-lg rounded-lg p-6 w-full max-w-md mx-4"
                     >
                         {children}
                     </motion.div>

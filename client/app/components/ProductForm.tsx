@@ -14,6 +14,7 @@ interface Product {
     availability: 'En stock' | 'On order' | 'Out of stock';
     description: string;
     colors: string[];
+    sizes: string[];
 }
 
 interface ProductFormData {
@@ -27,6 +28,7 @@ interface ProductFormData {
     availability: 'En stock' | 'On order' | 'Out of stock';
     description: string;
     colors: string[];
+    sizes: string[];
 }
 
 interface ProductFormProps {
@@ -62,6 +64,7 @@ const customStyles = {
 
 const ProductForm: React.FC<ProductFormProps> = ({ isOpen, onClose, onSubmit, initialData }) => {
     const [newColor, setNewColor] = useState<string>('');
+    const [newSize, setNewSize] = useState<string>('');
     const [formData, setFormData] = useState<ProductFormData>({
         name: '',
         price: 0,
@@ -72,6 +75,7 @@ const ProductForm: React.FC<ProductFormProps> = ({ isOpen, onClose, onSubmit, in
         availability: 'En stock',
         description: '',
         colors: [],
+        sizes: [],
     });
 
     useEffect(() => {
@@ -110,6 +114,23 @@ const ProductForm: React.FC<ProductFormProps> = ({ isOpen, onClose, onSubmit, in
         }));
     };
 
+    const handleAddSize = () => {
+        if (newSize && !formData.sizes.includes(newSize)) {
+            setFormData((prevData) => ({
+                ...prevData,
+                sizes: [...prevData.sizes, newSize],
+            }));
+            setNewSize('');
+        }
+    };
+
+    const handleRemoveSize = (sizeToRemove: string) => {
+        setFormData((prevData) => ({
+            ...prevData,
+            sizes: prevData.sizes.filter((size) => size !== sizeToRemove),
+        }));
+    };
+
     const handleAvatarsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (files) {
@@ -142,12 +163,13 @@ const ProductForm: React.FC<ProductFormProps> = ({ isOpen, onClose, onSubmit, in
         formData.colors.forEach((color) => {
             formDataToSend.append('colors[]', color);
         });
+        formData.sizes.forEach((size) => {
+            formDataToSend.append('sizes[]', size);
+        });
 
         // Handle existing avatars
         const existingAvatars = formData.avatars.filter(avatar => typeof avatar === 'string');
-        existingAvatars.forEach(avatar => {
-            formDataToSend.append('existingAvatars[]', avatar);
-        });
+        formDataToSend.append('existingAvatars', JSON.stringify(existingAvatars));
 
         // Handle new avatar files
         const newAvatars = formData.avatars.filter(avatar => avatar instanceof File);
@@ -168,7 +190,6 @@ const ProductForm: React.FC<ProductFormProps> = ({ isOpen, onClose, onSubmit, in
         onSubmit(formDataToSend);
         onClose();
     };
-
 
     return (
         <Modal isOpen={isOpen} onRequestClose={onClose} style={customStyles} ariaHideApp={false}>
@@ -239,6 +260,28 @@ const ProductForm: React.FC<ProductFormProps> = ({ isOpen, onClose, onSubmit, in
                         />
                         <button type="button" onClick={handleAddColor} className="mt-2 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">
                             Add Color
+                        </button>
+                    </div>
+                    <div className="mb-4">
+                        <label className="block mb-2 text-black">Sizes:</label>
+                        <div className="flex flex-wrap mb-2">
+                            {formData.sizes.map((size, index) => (
+                                <span key={index} className="inline-flex items-center text-sm font-medium text-slate-700 mr-2 mb-2">
+                                    {size}
+                                    <button type="button" onClick={() => handleRemoveSize(size)} className="ml-2 text-red-500">
+                                        <FaTimes />
+                                    </button>
+                                </span>
+                            ))}
+                        </div>
+                        <input
+                            type="text"
+                            value={newSize}
+                            onChange={(e) => setNewSize(e.target.value)}
+                            className="w-full border rounded py-2 px-3 text-black"
+                        />
+                        <button type="button" onClick={handleAddSize} className="mt-2 bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">
+                            Add Size
                         </button>
                     </div>
                     <div className="mb-4">

@@ -108,8 +108,8 @@ const GridView: React.FC<GridViewProps> = ({ products, hoveredProductId, setHove
                                         ${product.price.toFixed(2)}
                                     </p>
                                 </div>
-                                <div className="w-full bg-[#1e2841] p-4 text-center transform transition-transform duration-300 translate-y-full group-hover:translate-y-0">
-                                    <h2 className="text-amber-400 font-normal text-lg mb-1">{product.name}</h2>
+                                <div className="w-full bg-[#2DACD9] p-4 text-center transform transition-transform duration-300 translate-y-full group-hover:translate-y-0">
+                                    <h2 className="text-white font-normal text-lg mb-1">{product.name}</h2>
                                     <p className="text-white font-normal text-lg">
                                         ${product.price.toFixed(2)}
                                     </p>

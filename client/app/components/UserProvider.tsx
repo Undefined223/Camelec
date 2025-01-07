@@ -26,14 +26,14 @@ const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     }, [pathname, searchParams]);
 
     const addToCart = (product: Product, color?: string, quantity: number = 1) => {
-        const updatedProduct = { ...product, color, quantity }; // Include the selected color and quantity
+        const updatedProduct = { ...product, color, quantity };
         setCartProducts((prev) => {
             const existingProductIndex = prev.findIndex((p) => p._id === updatedProduct._id && p.color === updatedProduct.color);
             if (existingProductIndex > -1) {
                 const updatedCart = [...prev];
                 updatedCart[existingProductIndex] = {
                     ...updatedCart[existingProductIndex],
-                    quantity: updatedCart[existingProductIndex].quantity + quantity
+                    quantity: (updatedCart[existingProductIndex].quantity ?? 0) + quantity
                 };
                 localStorage.setItem('cart', JSON.stringify(updatedCart));
                 return updatedCart;
@@ -109,29 +109,27 @@ const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
 
     return (
         <Suspense fallback={<Loading/>}>
-
-        <UserContext.Provider
-            value={{
-                user,
-                setUser,
-                cartProducts,
-                setCartProducts,
-                wishlist,
-                setWishlist,
-                addToCart,
-                addToWishlist,
-                addAllToCart,
-                removeFromWishlist,
-                clearWishlist,
-                removeFromCart,
-                updateCartItemQuantity,
-                clearCart,
-            }}
-        >
-            {children}
-        </UserContext.Provider>
+            <UserContext.Provider
+                value={{
+                    user,
+                    setUser,
+                    cartProducts,
+                    setCartProducts,
+                    wishlist,
+                    setWishlist,
+                    addToCart,
+                    addToWishlist,
+                    addAllToCart,
+                    removeFromWishlist,
+                    clearWishlist,
+                    removeFromCart,
+                    updateCartItemQuantity,
+                    clearCart,
+                }}
+            >
+                {children}
+            </UserContext.Provider>
         </Suspense>
-
     );
 };
 

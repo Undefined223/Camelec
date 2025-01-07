@@ -34,6 +34,10 @@ const ProductSchema = new Schema({
         type: String,
         default: []
     }],
+    sizes: [{
+        type: String,
+        default: []
+    }],
     avatars: [{
         type: String, // Assuming storing file paths
         required: true,

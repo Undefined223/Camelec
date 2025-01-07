@@ -108,8 +108,8 @@ const ListView: React.FC<ListViewProps> = ({ products, hoveredProductId, setHove
                                         ${product.price.toFixed(2)}
                                     </p>
                                 </div>
-                                <div className="absolute inset-0 bg-[#1e2841] flex flex-col justify-center items-center transform transition-transform duration-300 translate-x-full group-hover:translate-x-0">
-                                    <h2 className="text-amber-400 font-normal text-xl mb-2">{product.name}</h2>
+                                <div className="absolute inset-0 bg-[#2DACD9] flex flex-col justify-center items-center transform transition-transform duration-300 translate-x-full group-hover:translate-x-0">
+                                    <h2 className="text-white font-normal text-xl mb-2">{product.name}</h2>
                                     <p className="text-white font-normal text-xl">
                                         ${product.price.toFixed(2)}
                                     </p>
