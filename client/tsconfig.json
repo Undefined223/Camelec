@@ -32,6 +32,6 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "tailwindcss-extend.d.ts"
-  ],
+, "app/components/Sidebar/Sidebar.tsx"  ],
   "exclude": ["node_modules"]
 }

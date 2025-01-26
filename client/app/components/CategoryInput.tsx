@@ -74,7 +74,7 @@ const CategoryInput: React.FC<CategoryInputProps> = ({ value, onInputChange }) =
     };
 
     return (
-        <div ref={containerRef} className="relative">
+        <div ref={containerRef} className="relative w-full">
             <input
                 type="text"
                 value={inputValue}

@@ -3,8 +3,7 @@ import React from 'react';
 
 const AdminPage: React.FC = () => {
     return (
-        <div className='bg-yellow h-full'>
-            aa
+        <div className=''>
         </div>
     );
 };

@@ -218,7 +218,7 @@ const Navbar: React.FC = () => {
                                     {profileMenuOpen && (
                                         <motion.div
                                             ref={profileMenuRef}
-                                            className="absolute text-center top-12 right-0 mt-2 w-48 bg-slate-700 border border-gray-200 rounded-md shadow-lg z-50"
+                                            className="absolute text-center top-12 right-0 mt-2 w-48 bg-slate-100 border border-gray-200 rounded-md shadow-lg z-50"
                                             variants={menuVariants}
                                             initial="hidden"
                                             animate="visible"
@@ -467,7 +467,7 @@ const Navbar: React.FC = () => {
                                 {categories.map((category) => (
                                     <div key={category._id} className="mb-4">
                                         <button
-                                            className="w-full text-left px-4 py-2 hover:bg-gray-100"
+                                            className="w-full text-left px-4 py-2 "
                                             onClick={() => setHoveredCategory(hoveredCategory === category._id ? null : category._id)}
                                         >
                                             {category.name}

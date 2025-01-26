@@ -2,7 +2,11 @@
 const { transporter } = require('../utils/transporter');
 
 const sendOrderConfirmationEmail = async (user, order) => {
+    console.log("user", user)
+    console.log("order", order)
+
     const orderItemsHtml = order.orderItems.map(item => `
+        
         <tr>
         <td>${item.product.name}</td>
         <td>${item.quantity}</td>

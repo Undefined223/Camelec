@@ -1,14 +1,13 @@
 const Order = require('../models/OrderSchema');
 const axios = require('axios');
 const User = require('../models/userModel');
-const { sendOrderConfirmationEmail } = require('../services/emailService')
+const { sendOrderConfirmationEmail } = require('../services/emailService');
 
 const splitName = (fullName) => {
     const [firstName, ...lastNameArr] = fullName.split(' ');
     const lastName = lastNameArr.join(' ');
     return { firstName, lastName };
 };
-
 
 const createOrder = async (req, res) => {
     try {
@@ -24,14 +23,14 @@ const createOrder = async (req, res) => {
             userId: userId,
         } = req.body;
 
-        console.log("userId:", userId)
+        console.log("userId:", userId);
         if (!userId) {
             return res.status(400).json({ message: 'user is required' });
         }
 
-        const user = await User.findById(userId)
+        const user = await User.findById(userId);
 
-        console.log('user', user)
+        console.log('user', user);
         if (!orderItems || orderItems.length === 0) {
             return res.status(400).json({ message: 'Order items are required' });
         }
@@ -48,9 +47,6 @@ const createOrder = async (req, res) => {
             totalPrice: totalPriceInCents, // Ensure this is in the smallest unit
             userId // Add this line
         });
-
-
-
 
         const { firstName, lastName } = splitName(user.name);
 
@@ -85,15 +81,22 @@ const createOrder = async (req, res) => {
                     }
                 });
 
-                console.log(paymentResponse)
+                console.log(paymentResponse);
                 if (paymentResponse.data && paymentResponse.data.payUrl) {
                     savedOrder.paymentRef = paymentResponse.data.paymentRef;
                     await savedOrder.save();
 
                     const populatedOrder = await Order.findById(savedOrder._id).populate('orderItems.product');
-                    
-                    await sendOrderConfirmationEmail(user, populatedOrder);
 
+                    console.log('Populated Order:', populatedOrder);
+
+                    // Check for null products
+                    const validOrderItems = populatedOrder.orderItems.filter(item => item.product !== null);
+                    if (validOrderItems.length === 0) {
+                        return res.status(400).json({ message: 'No valid products found in the order.' });
+                    }
+
+                    await sendOrderConfirmationEmail(user, populatedOrder);
 
                     return res.status(200).json({
                         message: 'Payment initiated. Please complete the payment using the provided URL.',
@@ -101,9 +104,6 @@ const createOrder = async (req, res) => {
                         paymentRef: paymentResponse.data.paymentRef,
                         orderId: savedOrder._id
                     });
-
-
-
                 } else {
                     return res.status(400).json({ message: 'Payment initiation failed. Please try again.' });
                 }
@@ -113,6 +113,14 @@ const createOrder = async (req, res) => {
             }
         } else {
             const populatedOrder = await Order.findById(savedOrder._id).populate('orderItems.product');
+            console.log('Populated Order:', populatedOrder);
+
+            // Check for null products
+            const validOrderItems = populatedOrder.orderItems.filter(item => item.product !== null);
+            if (validOrderItems.length === 0) {
+                return res.status(400).json({ message: 'No valid products found in the order.' });
+            }
+
             await sendOrderConfirmationEmail(user, populatedOrder);
 
             return res.status(200).json({
@@ -122,6 +130,55 @@ const createOrder = async (req, res) => {
         }
     } catch (error) {
         console.error('Error creating order:', error);
+        return res.status(500).json({ message: 'Server error' });
+    }
+};
+
+const OrderDeliverySubmit = async (req, res) => {
+    const { orderIds } = req.body;
+
+    try {
+        const orders = await Order.find({ _id: { $in: orderIds } }).populate('userId');
+
+        if (orders.length === 0) {
+            return res.status(404).json({ message: 'No orders found' });
+        }
+
+        // Update order status to "in progress"
+        await Order.updateMany({ _id: { $in: orderIds } }, { orderStatus: 'in progress' });
+
+        // Send email notifications to users
+        orders.forEach(async (order) => {
+            const user = order.userId;
+            const trackingLink = `http://YOUR_FRONTEND_URL/tracking/${order._id}`;
+            // await sendOrderConfirmationEmail(user, order, trackingLink);
+        });
+
+        res.status(200).json({ message: 'Orders submitted successfully' });
+    } catch (error) {
+        console.error('Error submitting orders:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+}
+const getPendingOrders = async (req, res) => {
+    console.log("triggered")
+    try {
+        const orders = await Order.find({ orderStatus: 'Processing' })
+            .populate({
+                path: 'orderItems.product',
+            })
+            .populate({
+                path: 'userId',
+            })
+            .sort({ createdAt: -1 });
+
+        if (!orders || orders.length === 0) {
+            return res.status(404).json({ message: 'No pending orders found' });
+        }
+
+        return res.status(200).json(orders);
+    } catch (error) {
+        console.error('Error fetching pending orders:', error);
         return res.status(500).json({ message: 'Server error' });
     }
 };
@@ -158,7 +215,6 @@ const getOrders = async (req, res) => {
             .populate({
                 path: 'orderItems.product', // Ensure this matches your schema
             })
-
             .sort({ createdAt: -1 });
 
         if (!orders || orders.length === 0) {
@@ -195,4 +251,4 @@ const updateOrderStatus = async (req, res) => {
     }
 };
 
-module.exports = { createOrder, getOrdersByUser, getOrders, updateOrderStatus };
+module.exports = { createOrder, getOrdersByUser, getOrders, updateOrderStatus, getPendingOrders, OrderDeliverySubmit };

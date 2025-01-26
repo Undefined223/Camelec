@@ -2,6 +2,14 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import type { Metadata } from 'next'
 import ClientLayout from "./ClientLayout";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "@fortawesome/fontawesome-free/css/all.min.css";
+import "jsvectormap/dist/jsvectormap.css";
+import 'flatpickr/dist/flatpickr.min.css';  
+import "@/app/components/css/satoshi.css";
+import "@/app/components/css/style.css";
+
+
 
 const inter = Inter({ subsets: ["latin"] });
 

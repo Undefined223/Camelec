@@ -22,6 +22,7 @@ interface Product {
     colors: string[];
     selectedColor?: string;
     quantity?: number;
+    discount?: number;
     color?: string; // Add the color property
 }
 

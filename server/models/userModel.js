@@ -20,13 +20,13 @@ const userSchema = new mongoose.Schema({
         max: 100, // Maximum discount is 100%
     },
     address: 
-        {
+      [  {
             address: { type: String },
             city: { type: String },
             postalCode: { type: String },
             country: { type: String },
             phone: { type: String },
-        }
+        }]
 }, {
     timestamps: true,
 });

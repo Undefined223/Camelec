@@ -25,7 +25,7 @@ interface Category {
 const Page: NextPage<Props> = () => {
     const [categories, setCategories] = useState<Category[]>([]);
     const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
-    const [editingSubcategoryId, setEditingSubcategoryId] = useState<string | null>(null); // New state for subcategory editing
+    const [editingSubcategoryId, setEditingSubcategoryId] = useState<string | null>(null);
     const [newCategoryName, setNewCategoryName] = useState<string>('');
     const [newSubcategoryName, setNewSubcategoryName] = useState<string>('');
     const [addingSubcategoryTo, setAddingSubcategoryTo] = useState<string | null>(null);
@@ -182,8 +182,6 @@ const Page: NextPage<Props> = () => {
         });
     };
 
-
-
     const handleDeleteSubcategory = (categoryId: string, subCategoryId: string) => {
         confirmAlert({
             title: 'Confirm to delete',
@@ -198,7 +196,6 @@ const Page: NextPage<Props> = () => {
                                 categoryId,
                                 subCategoryId,
                             });
-                            // Update state to remove subcategory from the list
                             setCategories(prevCategories =>
                                 prevCategories.map(category =>
                                     category._id === categoryId
@@ -225,6 +222,7 @@ const Page: NextPage<Props> = () => {
             ],
         });
     };
+
     const handleCreateCategory = async () => {
         try {
             setLoading(true);
@@ -244,37 +242,37 @@ const Page: NextPage<Props> = () => {
         <>
             <Suspense fallback={<Loading />}>
                 <ToastContainer />
-                {loading && <div className="text-center">Loading categories...</div>}
+                {loading && <div className="text-center text-sky-600 font-bold">Loading categories...</div>}
                 <div className="flex justify-center my-4 relative z-30">
                     <input
                         type="text"
                         value={newCategoryName}
                         onChange={(e) => setNewCategoryName(e.target.value)}
-                        className="px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-black focus:outline-none focus:ring focus:ring-yellow-500"
+                        className="px-4 py-2 border border-sky-600 rounded-lg bg-white text-sky-800 focus:outline-none focus:ring focus:ring-sky-500 transition duration-300 ease-in-out"
                         placeholder="Enter category name"
                     />
                     <button
                         onClick={handleCreateCategory}
-                        className="ml-2 bg-yellow hover:bg-yellow-400 text-black px-4 py-2 rounded-lg focus:outline-none focus:ring focus:ring-yellow-300"
+                        className="ml-2 bg-yellow-500 hover:bg-yellow-400 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring focus:ring-yellow-300 transition duration-300 ease-in-out"
                     >
                         Create Category
                     </button>
                 </div>
                 <div className="overflow-x-auto">
-                    <table className="min-w-full bg-gray-900 text-black rounded-lg overflow-hidden shadow-lg relative z-50">
+                    <table className="min-w-full bg-white text-sky-800 rounded-lg overflow-hidden shadow-lg relative z-50">
                         <thead>
                             <tr>
-                                <th className="px-4 py-2 border-b border-gray-700 text-left">ID</th>
-                                <th className="px-4 py-2 border-b border-gray-700 text-left">Name</th>
-                                <th className="px-4 py-2 border-b border-gray-700 text-left">Actions</th>
+                                <th className="px-4 py-2 border-b border-sky-300 text-left">ID</th>
+                                <th className="px-4 py-2 border-b border-sky-300 text-left">Name</th>
+                                <th className="px-4 py-2 border-b border-sky-300 text-left">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {categories.map((category) => (
                                 <React.Fragment key={category._id}>
-                                    <tr className="hover:bg-gray-700">
-                                        <td className="px-4 py-2 border-b border-gray-800 font-bold text-yellow-400 text-lg">{category._id}</td>
-                                        <td className="px-4 py-2 border-b border-gray-800 font-bold text-yellow-400 text-lg">
+                                    <tr className="hover:bg-sky-100 transition duration-300 ease-in-out">
+                                        <td className="px-4 py-2 border-b border-sky-300 font-bold text-yellow-500 text-lg">{category._id}</td>
+                                        <td className="px-4 py-2 border-b border-sky-300 font-bold text-yellow-500 text-lg">
                                             {editingCategoryId === category?._id ? (
                                                 <input
                                                     type="text"
@@ -282,7 +280,7 @@ const Page: NextPage<Props> = () => {
                                                     onChange={(e) => setNewCategoryName(e.target.value)}
                                                     onKeyPress={(e) => handleKeyPress(e, category._id)}
                                                     onBlur={() => handleBlur(category._id)}
-                                                    className="bg-transparent outline-none w-full text-black"
+                                                    className="bg-transparent outline-none w-full text-sky-800"
                                                     autoFocus
                                                 />
                                             ) : (
@@ -291,16 +289,16 @@ const Page: NextPage<Props> = () => {
                                                 </div>
                                             )}
                                         </td>
-                                        <td className="px-4 py-2 border-b border-gray-800">
+                                        <td className="px-4 py-2 border-b border-sky-300">
                                             <button
                                                 onClick={() => handleDelete(category._id)}
-                                                className="bg-red-500 hover:bg-red-700 text-black px-4 py-1 rounded-lg"
+                                                className="bg-red-500 hover:bg-red-700 text-white px-4 py-1 rounded-lg transition duration-300 ease-in-out"
                                             >
                                                 <FaTrash />
                                             </button>
                                             <button
                                                 onClick={() => setAddingSubcategoryTo(category._id)}
-                                                className="text-black px-4 py-1 rounded-lg ml-2"
+                                                className="bg-sky-500 hover:bg-sky-400 text-white px-4 py-1 rounded-lg ml-2 transition duration-300 ease-in-out"
                                             >
                                                 <FaPlus />
                                             </button>
@@ -314,12 +312,12 @@ const Page: NextPage<Props> = () => {
                                                         type="text"
                                                         value={newSubcategoryName}
                                                         onChange={(e) => setNewSubcategoryName(e.target.value)}
-                                                        className="px-4 py-2 border border-gray-600 rounded-lg bg-gray-800 text-black focus:outline-none focus:ring focus:ring-yellow-500"
+                                                        className="px-4 py-2 border border-sky-600 rounded-lg bg-white text-sky-800 focus:outline-none focus:ring focus:ring-sky-500 transition duration-300 ease-in-out"
                                                         placeholder="Enter subcategory name"
                                                     />
                                                     <button
                                                         onClick={() => handleCreateSubcategory(category._id)}
-                                                        className="ml-2 bg-yellow hover:bg-yellow-400 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring focus:ring-yellow-300"
+                                                        className="ml-2 bg-yellow-500 hover:bg-yellow-400 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring focus:ring-yellow-300 transition duration-300 ease-in-out"
                                                     >
                                                         Create Subcategory
                                                     </button>
@@ -328,11 +326,11 @@ const Page: NextPage<Props> = () => {
                                         </tr>
                                     )}
                                     {category?.subCategory.map((subCat) => (
-                                        <tr key={subCat?._id} className="hover:bg-slate-600"> {/* Different background color for subcategories */}
-                                            <td className="px-4 py-1 border-b border-gray-800 text-yellow-400 pl-8 text-sm"> {/* Smaller font size for subcategory */}
+                                        <tr key={subCat?._id} className="hover:bg-yellow-50 transition duration-300 ease-in-out">
+                                            <td className="px-4 py-1 border-b border-sky-300 text-sky-500 pl-8 text-sm">
                                                 {subCat?._id}
                                             </td>
-                                            <td className="px-4 py-1 border-b border-gray-800 text-sm"> {/* Smaller font size for subcategory */}
+                                            <td className="px-4 py-1 border-b border-sky-300 text-sm">
                                                 {editingSubcategoryId === subCat?._id ? (
                                                     <input
                                                         type="text"
@@ -340,19 +338,19 @@ const Page: NextPage<Props> = () => {
                                                         onChange={handleSubcategoryInputChange}
                                                         onKeyPress={(e) => handleSubcategoryKeyPress(e, subCat?._id)}
                                                         onBlur={() => handleSubcategoryBlur(subCat?._id)}
-                                                        className="bg-transparent outline-none w-full text-white"
+                                                        className="bg-transparent outline-none w-full text-sky-800"
                                                         autoFocus
                                                     />
                                                 ) : (
                                                     <div onDoubleClick={() => handleSubcategoryDoubleClick(subCat._id, subCat.name)}>
-                                                        {subCat?.name} <span className="text-xs">(Subcategory)</span> {/* Smaller subcategory label */}
+                                                        {subCat?.name} <span className="text-xs">(Subcategory)</span>
                                                     </div>
                                                 )}
                                             </td>
-                                            <td className="px-4 py-1 border-b border-gray-800">
+                                            <td className="px-4 py-1 border-b border-sky-300">
                                                 <button
-                                                    onClick={() => handleDeleteSubcategory(category._id, subCat._id)} // Updated to delete subcategory
-                                                    className="bg-red-500 hover:bg-red-700 text-white px-3 py-1 rounded-lg text-sm" // Smaller button size
+                                                    onClick={() => handleDeleteSubcategory(category._id, subCat._id)}
+                                                    className="bg-red-500 hover:bg-red-700 text-white px-3 py-1 rounded-lg text-sm transition duration-300 ease-in-out"
                                                 >
                                                     <FaTrash />
                                                 </button>
@@ -362,8 +360,6 @@ const Page: NextPage<Props> = () => {
                                 </React.Fragment>
                             ))}
                         </tbody>
-
-
                     </table>
                 </div>
             </Suspense>
