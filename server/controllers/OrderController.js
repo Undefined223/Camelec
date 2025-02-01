@@ -182,6 +182,29 @@ const getPendingOrders = async (req, res) => {
         return res.status(500).json({ message: 'Server error' });
     }
 };
+const getProcessingOrders = async (req, res) => {
+    console.log("triggered")
+    try {
+        const orders = await Order.find({ orderStatus: 'in progress' })
+            .populate({
+                path: 'orderItems.product',
+            })
+            .populate({
+                path: 'userId',
+            })
+            .sort({ createdAt: -1 });
+
+        if (!orders || orders.length === 0) {
+            return res.status(404).json({ message: 'No pending orders found' });
+        }
+
+        return res.status(200).json(orders);
+    } catch (error) {
+        console.error('Error fetching pending orders:', error);
+        return res.status(500).json({ message: 'Server error' });
+    }
+};
+
 
 const getOrdersByUser = async (req, res) => {
     try {
@@ -251,4 +274,32 @@ const updateOrderStatus = async (req, res) => {
     }
 };
 
-module.exports = { createOrder, getOrdersByUser, getOrders, updateOrderStatus, getPendingOrders, OrderDeliverySubmit };
+const getOrderById = async (req, res) => {
+    console.log(req.body)
+    try {
+        const orderId = req.params.id;
+        if (!orderId) {
+            return res.status(400).json({ message: 'Order ID is required' });
+        }
+
+        const order = await Order.findById(orderId)
+            .populate({
+                path: 'orderItems.product',
+            })
+            .populate({
+                path: 'userId',
+            });
+
+        if (!order) {
+            return res.status(404).json({ message: 'Order not found' });
+        }
+
+        return res.status(200).json(order);
+    } catch (error) {
+        console.error('Error fetching order by ID:', error);
+        return res.status(500).json({ message: 'Server error' });
+    }
+};
+
+module.exports = { createOrder, getOrdersByUser, getOrders, updateOrderStatus, getPendingOrders, OrderDeliverySubmit, getOrderById, getProcessingOrders };
+

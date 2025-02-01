@@ -23,27 +23,27 @@ const menuGroups = [
       {
         icon: <FontAwesomeIcon icon={faList} />,
         label: "Categories",
-        route: "/adminn/categories",
+        route: "/admin/categories",
       },
       {
         icon: <FontAwesomeIcon icon={faPlus} />,
         label: "Add Product",
-        route: "/adminn/add-product",
+        route: "/admin/add-product",
       },
       {
         icon: <FontAwesomeIcon icon={faBox} />,
         label: "Products",
-        route: "/adminn/products",
+        route: "/admin/products",
       },
       {
         icon: <FontAwesomeIcon icon={faExchangeAlt} />,
         label: "Transactions",
-        route: "/adminn/transactions",
+        route: "/admin/transactions",
       },
       {
         icon: <FontAwesomeIcon icon={faClipboardList} />,
         label: "Transaction List",
-        route: "/adminn/transaction-list",
+        route: "/admin/transaction-list",
       },
       {
         icon: <FontAwesomeIcon icon={faFileAlt} />,

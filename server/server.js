@@ -27,29 +27,20 @@ app.use(helmet({
 }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-const server = http.createServer(app);
-const io = require("socket.io")(server, {
-  pingTimeout: 60000,
-  cors: {
-    origin: "http://localhost:3000",
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
-  },
-});
+
+
+
 
 require("dotenv").config();
 require('./config/conn')
 const { PORT } = process.env;
 
 
+app.use(cors({
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true,
+}));
 
-app.use(
-  cors({
-    origin: ["http://localhost:3000"],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
-  })
-);
 app.use(express.json());
 
 
@@ -98,33 +89,59 @@ app.get('/webhook', async (req, res) => {
   }
 });
 
+const server = app.listen(PORT, () => {
+  console.log(`Server is listening on port ${PORT}`);
+});
 
+const socketServer = http.createServer(app);
+const io = require("socket.io")(server, {
+  pingTimeout: 60000,
+  pingInterval: 25000,
+  cors: {
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
+  },
+});
 
 io.on('connection', async (socket) => {
-  console.log('New client connected');
+  console.log('New client connected with ID:', socket.id);
+
+  socket.on('ping', () => {
+    socket.emit('pong');
+    console.log('Heartbeat received from:', socket.id);
+  });
+
+  socket.on('error', (error) => {
+    console.error('Socket error:', error);
+  });
 
   socket.on('joinDeliveryRoom', async ({ orderId, userId }) => {
+    console.log('Join delivery room request:', { orderId, userId });
     try {
       const user = await User.findById(userId);
+
       if (!user) {
+        console.log('User not found:', userId);
         socket.emit('unauthorized', 'User not found');
         return;
       }
 
-      if (user.role === 'admin') {
+      if (user.role === 'admin' || user.isAdmin === true) {
         socket.join(orderId);
         console.log(`Admin joined room: ${orderId}`);
       } else {
         const order = await Order.findById(orderId);
         if (!order) {
+          console.log('Order not found:', orderId);
           socket.emit('unauthorized', 'Order not found');
           return;
         }
 
         if (order.userId.toString() === userId) {
           socket.join(orderId);
-          console.log(`User joined room: ${orderId}`);
+          console.log(`User ${userId} joined order room: ${orderId}`);
         } else {
+          console.log('Unauthorized room access attempt:', { userId, orderId });
           socket.emit('unauthorized', 'Unauthorized access');
         }
       }
@@ -134,34 +151,59 @@ io.on('connection', async (socket) => {
     }
   });
 
-  socket.on('startDelivery', (orderId) => {
-    // Emit delivery start event to the specific room
-    io.to(orderId).emit('deliveryStarted', orderId);
-  });
-
   socket.on('updateLocation', ({ orderId, location }) => {
-    // Emit location update event to the specific room
+    console.log('updateLocation received:', {
+      socketId: socket.id,
+      orderId,
+      location,
+      rooms: Array.from(socket.rooms)
+    });
+
+    socket.emit('locationAck', { received: true, timestamp: new Date().toISOString() });
+
     io.to(orderId).emit('locationUpdated', { orderId, location });
   });
 
   socket.on('completeDelivery', async (orderId) => {
+    console.log('Complete delivery request:', orderId);
     try {
-      const order = await Order.findByIdAndUpdate(orderId, { orderStatus: 'completed' }, { new: true });
+      const order = await Order.findByIdAndUpdate(
+        orderId,
+        { orderStatus: 'completed' },
+        { new: true }
+      );
       if (order) {
         io.to(orderId).emit('deliveryCompleted', orderId);
+        console.log(`Delivery completed for order: ${orderId}`);
       }
     } catch (error) {
       console.error('Error completing delivery:', error);
+      socket.emit('error', 'Failed to complete delivery');
     }
   });
 
-  socket.on('disconnect', () => {
-    console.log('Client disconnected');
+  socket.on('cancelDelivery', async (orderId) => {
+    console.log('Cancel delivery request:', orderId);
+    try {
+      const order = await Order.findByIdAndUpdate(
+        orderId,
+        { orderStatus: 'cancelled' },
+        { new: true }
+      );
+      if (order) {
+        io.to(orderId).emit('deliveryCancelled', orderId);
+        console.log(`Delivery cancelled for order: ${orderId}`);
+      }
+    } catch (error) {
+      console.error('Error cancelling delivery:', error);
+      socket.emit('error', 'Failed to cancel delivery');
+    }
+  });
+
+  socket.on('disconnect', (reason) => {
+    console.log('Client disconnected:', socket.id, 'Reason:', reason);
   });
 });
-
-
-
 
 
 app.use('/uploads', (req, res, next) => {
@@ -180,6 +222,3 @@ app.use('/uploads', (req, res, next) => {
 
 
 
-app.listen(PORT, () => {
-  console.log(`Server is listening on port ${PORT}`);
-});
