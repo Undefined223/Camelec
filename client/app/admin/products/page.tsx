@@ -8,6 +8,7 @@ import Loading from '@/app/components/Loading';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import { useRouter } from 'next/navigation';
 import { Product } from '@/app/context/InfoPlusProvider';
+import Link from 'next/link';
 
 
 const ProductList: React.FC = () => {
@@ -69,9 +70,7 @@ const ProductList: React.FC = () => {
     });
   };
 
-  const handleEdit = (productId: string) => {
-    router.push(`/edit-product/${productId}`);
-  };
+  
 
   return (
     <div className="p-6">
@@ -133,15 +132,14 @@ const ProductList: React.FC = () => {
                   <td className="px-6 py-4 text-sm text-gray-500">{product.discount}</td>
 
                   <td className="px-6 py-4 text-sm text-gray-500">TND{product.price}</td>
-                 
+
                   <td className="px-6 py-4">
                     <div className="flex gap-2">
-                      <button
-                        onClick={() => handleEdit(product._id)}
-                        className="text-gray-600 hover:text-blue-600 transition-colors"
-                      >
-                        <FaEdit className="w-5 h-5" />
-                      </button>
+                      <Link href={`/edit-product/${product._id}`}>
+                        <button className="text-gray-600 hover:text-blue-600 transition-colors">
+                          <FaEdit className="w-5 h-5" />
+                        </button>
+                      </Link>
                       <button
                         onClick={() => handleDelete(product._id)}
                         className="text-gray-600 hover:text-red-600 transition-colors"

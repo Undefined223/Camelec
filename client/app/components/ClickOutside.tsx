@@ -1,13 +1,14 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, memo } from "react";
 
+// Define the Props interface
 interface Props {
   children: React.ReactNode;
-  exceptionRef?: React.RefObject<HTMLElement>;
+  exceptionRef?: React.RefObject<HTMLElement> | React.MutableRefObject<HTMLElement>;
   onClick: () => void;
   className?: string;
 }
 
-const ClickOutside: React.FC<Props> = ({
+const ClickOutside: React.FC<Props> = memo(({
   children,
   exceptionRef,
   onClick,
@@ -46,6 +47,6 @@ const ClickOutside: React.FC<Props> = ({
       {children}
     </div>
   );
-};
+});
 
 export default ClickOutside;

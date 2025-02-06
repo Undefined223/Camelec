@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { Card } from 'reactstrap';
 import { StrictModeDroppable } from '../StrictModeDroppable';
@@ -11,7 +11,6 @@ interface ImageSorterProps {
 const ImageSorter: React.FC<ImageSorterProps> = ({ initialImages = [], onImagesChange }) => {
   const [images, setImages] = useState<Array<{ url: string; id: string; file: File }>>(initialImages);
 
-  console.log(images)
   const handleOnDragEnd = useCallback((result: any) => {
     if (!result.destination) return;
 
@@ -80,11 +79,6 @@ const ImageSorter: React.FC<ImageSorterProps> = ({ initialImages = [], onImagesC
     onImagesChange(updatedImages);
   }, [images, onImagesChange]);
 
-  useEffect(() => {
-    if (initialImages !== images) {
-      setImages(initialImages);
-    }
-  }, [initialImages]);
   return (
     <Card className="p-6 w-full">
       <div
@@ -131,7 +125,7 @@ const ImageSorter: React.FC<ImageSorterProps> = ({ initialImages = [], onImagesC
                       className="relative w-40 h-40 group"
                     >
                       <img
-                        src={`${process.env.NEXT_PUBLIC_API_BASE_URL}/${image.url}`}
+                        src={image.url}
                         alt={`Image ${index + 1}`}
                         className="w-full h-full object-cover rounded-lg border-2 border-gray-200"
                       />

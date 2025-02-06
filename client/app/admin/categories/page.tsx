@@ -2,7 +2,7 @@
 import axiosInstance from '@/app/components/AxiosInstance';
 import { NextPage } from 'next';
 import React, { Suspense, useEffect, useState } from 'react';
-import { FaPlus, FaTrash } from 'react-icons/fa';
+import { FaPlus, FaTrash, FaEdit } from 'react-icons/fa';
 import { confirmAlert } from 'react-confirm-alert';
 import 'react-confirm-alert/src/react-confirm-alert.css';
 import { toast, ToastContainer } from 'react-toastify';
@@ -51,8 +51,8 @@ const Page: NextPage<Props> = () => {
             );
             setNewSubcategoryName('');
             setAddingSubcategoryTo(null);
-            setEditingCategoryId(null)
-            setEditingSubcategoryId(null)
+            setEditingCategoryId(null);
+            setEditingSubcategoryId(null);
             toast.success('Subcategory added successfully');
             getCategories();
         } catch (err) {
@@ -243,124 +243,135 @@ const Page: NextPage<Props> = () => {
             <Suspense fallback={<Loading />}>
                 <ToastContainer />
                 {loading && <div className="text-center text-sky-600 font-bold">Loading categories...</div>}
-                <div className="flex justify-center my-4 relative z-30">
-                    <input
-                        type="text"
-                        value={newCategoryName}
-                        onChange={(e) => setNewCategoryName(e.target.value)}
-                        className="px-4 py-2 border border-sky-600 rounded-lg bg-white text-sky-800 focus:outline-none focus:ring focus:ring-sky-500 transition duration-300 ease-in-out"
-                        placeholder="Enter category name"
-                    />
-                    <button
-                        onClick={handleCreateCategory}
-                        className="ml-2 bg-yellow-500 hover:bg-yellow-400 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring focus:ring-yellow-300 transition duration-300 ease-in-out"
-                    >
-                        Create Category
-                    </button>
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="min-w-full bg-white text-sky-800 rounded-lg overflow-hidden shadow-lg relative z-50">
-                        <thead>
-                            <tr>
-                                <th className="px-4 py-2 border-b border-sky-300 text-left">ID</th>
-                                <th className="px-4 py-2 border-b border-sky-300 text-left">Name</th>
-                                <th className="px-4 py-2 border-b border-sky-300 text-left">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {categories.map((category) => (
-                                <React.Fragment key={category._id}>
-                                    <tr className="hover:bg-sky-100 transition duration-300 ease-in-out">
-                                        <td className="px-4 py-2 border-b border-sky-300 font-bold text-yellow-500 text-lg">{category._id}</td>
-                                        <td className="px-4 py-2 border-b border-sky-300 font-bold text-yellow-500 text-lg">
-                                            {editingCategoryId === category?._id ? (
-                                                <input
-                                                    type="text"
-                                                    value={newCategoryName}
-                                                    onChange={(e) => setNewCategoryName(e.target.value)}
-                                                    onKeyPress={(e) => handleKeyPress(e, category._id)}
-                                                    onBlur={() => handleBlur(category._id)}
-                                                    className="bg-transparent outline-none w-full text-sky-800"
-                                                    autoFocus
-                                                />
-                                            ) : (
-                                                <div onDoubleClick={() => handleDoubleClick(category)}>
-                                                    {category.name} <span className="text-sm">(Category)</span>
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-2 border-b border-sky-300">
-                                            <button
-                                                onClick={() => handleDelete(category._id)}
-                                                className="bg-red-500 hover:bg-red-700 text-white px-4 py-1 rounded-lg transition duration-300 ease-in-out"
-                                            >
-                                                <FaTrash />
-                                            </button>
-                                            <button
-                                                onClick={() => setAddingSubcategoryTo(category._id)}
-                                                className="bg-sky-500 hover:bg-sky-400 text-white px-4 py-1 rounded-lg ml-2 transition duration-300 ease-in-out"
-                                            >
-                                                <FaPlus />
-                                            </button>
-                                        </td>
+                <div className="flex justify-center my-8">
+                    <div className="bg-white p-6 rounded-lg shadow-lg w-full max-w-4xl">
+                        <h1 className="text-3xl font-bold text-gray-900 mb-6">Category Management</h1>
+                        <div className="flex gap-4 mb-6">
+                            <input
+                                type="text"
+                                value={newCategoryName}
+                                onChange={(e) => setNewCategoryName(e.target.value)}
+                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 transition duration-300"
+                                placeholder="Enter category name"
+                            />
+                            <button
+                                onClick={handleCreateCategory}
+                                className="bg-sky-500 hover:bg-sky-600 text-white px-6 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 transition duration-300"
+                            >
+                                Create Category
+                            </button>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="min-w-full bg-white rounded-lg overflow-hidden shadow-md">
+                                <thead className="bg-gray-100">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">ID</th>
+                                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Name</th>
+                                        <th className="px-6 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
                                     </tr>
-                                    {addingSubcategoryTo === category._id && (
-                                        <tr>
-                                            <td colSpan={3}>
-                                                <div className="flex my-2">
-                                                    <input
-                                                        type="text"
-                                                        value={newSubcategoryName}
-                                                        onChange={(e) => setNewSubcategoryName(e.target.value)}
-                                                        className="px-4 py-2 border border-sky-600 rounded-lg bg-white text-sky-800 focus:outline-none focus:ring focus:ring-sky-500 transition duration-300 ease-in-out"
-                                                        placeholder="Enter subcategory name"
-                                                    />
-                                                    <button
-                                                        onClick={() => handleCreateSubcategory(category._id)}
-                                                        className="ml-2 bg-yellow-500 hover:bg-yellow-400 text-white px-4 py-2 rounded-lg focus:outline-none focus:ring focus:ring-yellow-300 transition duration-300 ease-in-out"
-                                                    >
-                                                        Create Subcategory
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    )}
-                                    {category?.subCategory.map((subCat) => (
-                                        <tr key={subCat?._id} className="hover:bg-yellow-50 transition duration-300 ease-in-out">
-                                            <td className="px-4 py-1 border-b border-sky-300 text-sky-500 pl-8 text-sm">
-                                                {subCat?._id}
-                                            </td>
-                                            <td className="px-4 py-1 border-b border-sky-300 text-sm">
-                                                {editingSubcategoryId === subCat?._id ? (
-                                                    <input
-                                                        type="text"
-                                                        value={newSubcategoryName}
-                                                        onChange={handleSubcategoryInputChange}
-                                                        onKeyPress={(e) => handleSubcategoryKeyPress(e, subCat?._id)}
-                                                        onBlur={() => handleSubcategoryBlur(subCat?._id)}
-                                                        className="bg-transparent outline-none w-full text-sky-800"
-                                                        autoFocus
-                                                    />
-                                                ) : (
-                                                    <div onDoubleClick={() => handleSubcategoryDoubleClick(subCat._id, subCat.name)}>
-                                                        {subCat?.name} <span className="text-xs">(Subcategory)</span>
+                                </thead>
+                                <tbody className="divide-y divide-gray-200">
+                                    {categories.map((category) => (
+                                        <React.Fragment key={category._id}>
+                                            <tr className="hover:bg-gray-50 transition duration-300">
+                                                <td className="px-6 py-4 text-sm text-gray-700">{category._id}</td>
+                                                <td className="px-6 py-4 text-sm text-gray-700">
+                                                    {editingCategoryId === category._id ? (
+                                                        <input
+                                                            type="text"
+                                                            value={newCategoryName}
+                                                            onChange={handleInputChange}
+                                                            onKeyPress={(e) => handleKeyPress(e, category._id)}
+                                                            onBlur={() => handleBlur(category._id)}
+                                                            className="w-full px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 transition duration-300"
+                                                            autoFocus
+                                                        />
+                                                    ) : (
+                                                        <div
+                                                            onDoubleClick={() => handleDoubleClick(category)}
+                                                            className="cursor-pointer"
+                                                        >
+                                                            {category.name} <span className="text-xs text-gray-500">(Category)</span>
+                                                        </div>
+                                                    )}
+                                                </td>
+                                                <td className="px-6 py-4 text-sm text-gray-700">
+                                                    <div className="flex gap-2">
+                                                        <button
+                                                            onClick={() => handleDelete(category._id)}
+                                                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition duration-300"
+                                                        >
+                                                            <FaTrash />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setAddingSubcategoryTo(category._id)}
+                                                            className="bg-sky-500 hover:bg-sky-600 text-white px-3 py-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 transition duration-300"
+                                                        >
+                                                            <FaPlus />
+                                                        </button>
                                                     </div>
-                                                )}
-                                            </td>
-                                            <td className="px-4 py-1 border-b border-sky-300">
-                                                <button
-                                                    onClick={() => handleDeleteSubcategory(category._id, subCat._id)}
-                                                    className="bg-red-500 hover:bg-red-700 text-white px-3 py-1 rounded-lg text-sm transition duration-300 ease-in-out"
-                                                >
-                                                    <FaTrash />
-                                                </button>
-                                            </td>
-                                        </tr>
+                                                </td>
+                                            </tr>
+                                            {addingSubcategoryTo === category._id && (
+                                                <tr>
+                                                    <td colSpan={3}>
+                                                        <div className="flex gap-4 p-4 bg-gray-50">
+                                                            <input
+                                                                type="text"
+                                                                value={newSubcategoryName}
+                                                                onChange={(e) => setNewSubcategoryName(e.target.value)}
+                                                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 transition duration-300"
+                                                                placeholder="Enter subcategory name"
+                                                            />
+                                                            <button
+                                                                onClick={() => handleCreateSubcategory(category._id)}
+                                                                className="bg-sky-500 hover:bg-sky-600 text-white px-6 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 transition duration-300"
+                                                            >
+                                                                Create Subcategory
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            )}
+                                            {category.subCategory.map((subCat) => (
+                                                <tr key={subCat._id} className="hover:bg-gray-50 transition duration-300">
+                                                    <td className="px-6 py-4 text-sm text-gray-500 pl-12">{subCat._id}</td>
+                                                    <td className="px-6 py-4 text-sm text-gray-500">
+                                                        {editingSubcategoryId === subCat._id ? (
+                                                            <input
+                                                                type="text"
+                                                                value={newSubcategoryName}
+                                                                onChange={handleSubcategoryInputChange}
+                                                                onKeyPress={(e) => handleSubcategoryKeyPress(e, subCat._id)}
+                                                                onBlur={() => handleSubcategoryBlur(subCat._id)}
+                                                                className="w-full px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 transition duration-300"
+                                                                autoFocus
+                                                            />
+                                                        ) : (
+                                                            <div
+                                                                onDoubleClick={() => handleSubcategoryDoubleClick(subCat._id, subCat.name)}
+                                                                className="cursor-pointer"
+                                                            >
+                                                                {subCat.name} <span className="text-xs text-gray-400">(Subcategory)</span>
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                    <td className="px-6 py-4 text-sm text-gray-500">
+                                                        <button
+                                                            onClick={() => handleDeleteSubcategory(category._id, subCat._id)}
+                                                            className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 transition duration-300"
+                                                        >
+                                                            <FaTrash />
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </React.Fragment>
                                     ))}
-                                </React.Fragment>
-                            ))}
-                        </tbody>
-                    </table>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </Suspense>
         </>
