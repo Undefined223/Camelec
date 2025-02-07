@@ -9,7 +9,7 @@ import ClickOutside from "@/app/components/ClickOutside";
 import useLocalStorage from "@/app/hooks/useLocalStorage";
 import logo from '@/app/components/assets/logo.png';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faList, faPlus, faBox, faExchangeAlt, faClipboardList, faFileAlt, faTruck } from '@fortawesome/free-solid-svg-icons';
+import { faList, faPlus, faBox, faExchangeAlt, faClipboardList, faFileAlt, faTruck, faUser } from '@fortawesome/free-solid-svg-icons';
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -40,7 +40,11 @@ const menuGroups = [
         label: "Deliveries",
         route: "/admin/deliveries",
       },
-      
+      {
+        icon: <FontAwesomeIcon icon={faUser} />,
+        label: "Users",
+        route: "/admin/users",
+      },
       {
         icon: <FontAwesomeIcon icon={faExchangeAlt} />,
         label: "Transactions",

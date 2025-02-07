@@ -74,7 +74,7 @@ export default function DefaultLayout({
 
           {/* <!-- ===== Main Content Start ===== --> */}
           <main>
-            <div className=" max-w-screen-2xl   ">
+            <div className="    ">
               {children}
             </div>
           </main>

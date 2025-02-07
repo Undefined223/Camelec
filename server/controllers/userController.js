@@ -117,7 +117,7 @@ const updateUser = asyncHandler(async (req, res) => {
             if (discount < 0 || discount > 100) {
                 return res.status(400).json({ message: 'Discount must be between 0 and 100' });
             }
-            Business.discount = discount;
+            user.discount = discount;
         }
 
 
