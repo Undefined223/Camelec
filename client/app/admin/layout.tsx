@@ -10,50 +10,7 @@ export default function DefaultLayout({
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const routes = [
-    {
-      layout: "/admin",
-      path: "/dashboard",
-      name: "Dashboard",
-      icon: "fas fa-tachometer-alt text-blue", // Example Font Awesome icon
-    },
-    {
-      layout: "/admin",
-      path: "/categories",
-      name: "Categories",
-      icon: "fas fa-cogs text-blue",
-    },
-    {
-      layout: "/admin",
-      path: "/products",
-      name: "Products",
-      icon: "fas fa-box text-blue",
-    },
-    {
-      layout: "/admin",
-      path: "/announcements",
-      name: "Announcements",
-      icon: "fas fa-flag text-blue",
-    },
-    {
-      layout: "/admin",
-      path: "/users",
-      name: "Users",
-      icon: "fas fa-users text-blue",
-    },
-    {
-      layout: "/admin",
-      path: "/orders",
-      name: "Orders",
-      icon: "fas fa-boxes text-blue",
-    },
-    {
-      layout: "/",
-      path: "/",
-      name: "Home",
-      icon: "fas fa-home text-blue",
-    },
-  ];
+ 
 
   
   return (

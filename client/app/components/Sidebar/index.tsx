@@ -9,7 +9,7 @@ import ClickOutside from "@/app/components/ClickOutside";
 import useLocalStorage from "@/app/hooks/useLocalStorage";
 import logo from '@/app/components/assets/logo.png';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faList, faPlus, faBox, faExchangeAlt, faClipboardList, faFileAlt, faTruck, faUser } from '@fortawesome/free-solid-svg-icons';
+import { faList, faPlus, faBox, faExchangeAlt, faClipboardList, faFileAlt, faTruck, faUser, faDashboard } from '@fortawesome/free-solid-svg-icons';
 
 interface SidebarProps {
   sidebarOpen: boolean;
@@ -20,6 +20,11 @@ const menuGroups = [
   {
     name: "MENU",
     menuItems: [
+      {
+        icon: <FontAwesomeIcon icon={faDashboard} />,
+        label: "Dashboard",
+        route: "/admin/",
+      },
       {
         icon: <FontAwesomeIcon icon={faList} />,
         label: "Categories",

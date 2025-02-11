@@ -300,6 +300,37 @@ const getOrderById = async (req, res) => {
         return res.status(500).json({ message: 'Server error' });
     }
 };
+const getOrdersByCity = async (req, res) => {
+    try {
+      // Aggregate orders by city
+      const ordersByCity = await Order.aggregate([
+        {
+          $group: {
+            _id: "$shippingAddress.city", // Group by city
+            count: { $sum: 1 }, // Count the number of orders
+          },
+        },
+        {
+          $project: {
+            _id: 0, // Exclude the default _id field
+            city: "$_id", // Rename _id to city
+            count: 1, // Include the count field
+          },
+        },
+      ]);
+  
+      // Convert the array to an object for easier frontend use
+      const ordersByCityObject = ordersByCity.reduce((acc, { city, count }) => {
+        acc[city] = count;
+        return acc;
+      }, {});
+  
+      res.status(200).json(ordersByCityObject);
+    } catch (error) {
+      console.error("Error fetching orders by city:", error);
+      res.status(500).json({ message: "Server error" });
+    }
+  };
 
-module.exports = { createOrder, getOrdersByUser, getOrders, updateOrderStatus, getPendingOrders, OrderDeliverySubmit, getOrderById, getProcessingOrders };
+module.exports = { createOrder, getOrdersByUser, getOrders, updateOrderStatus, getPendingOrders, OrderDeliverySubmit, getOrderById, getProcessingOrders, getOrdersByCity };
 
