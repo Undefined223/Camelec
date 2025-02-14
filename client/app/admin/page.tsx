@@ -109,7 +109,9 @@ const ECommerce: React.FC = () => {
         <ChartOne />
         <ChartTwo />
         <ChartThree />
-        <MapOne />
+        <div className="col-span-12"> {/* Ensure MapOne takes full width of its column */}
+          <MapOne />
+        </div>
         <div className="col-span-12 xl:col-span-8">
           <TableOne />
         </div>

@@ -1,136 +1,101 @@
-"use client";
-import React, { useEffect, useRef } from "react";
-import { tunisiaPaths } from "@/app/components/js/tunisia";
+import { useEffect, useState } from 'react';
+import TunisiaMap from '@/app/components/TunisiaMap';
+import { FeatureCollection } from 'geojson';
+import axios from 'axios';
+import axiosInstance from '../AxiosInstance';
 
-// Extend the window interface to handle jsVectorMap
-declare global {
-  interface Window {
-    jsVectorMap: {
-      maps: Record<string, any>;
+const HomePage: React.FC = () => {
+  const [governatesData, setGovernatesData] = useState<FeatureCollection | null>(null);
+
+  // Fetch order counts by city from the API
+  const fetchOrdersByCity = async () => {
+    try {
+      const response = await axiosInstance.get('/api/orders/by-city'); // Replace with your API endpoint
+      return response.data; // Returns { city1: count1, city2: count2, ... }
+    } catch (error) {
+      console.error('Error fetching orders by city:', error);
+      return {};
+    }
+  };
+
+  // Normalize names for matching
+  const normalizeName = (name: string) => {
+    return name
+      .toLowerCase()
+      .normalize('NFD') // Normalize accents
+      .replace(/[\u0300-\u036f]/g, ''); // Remove accents
+  };
+
+  // Update GeoJSON with order counts
+  const updateGeoJSONWithOrders = async (governatesData: FeatureCollection) => {
+    const ordersByCity = await fetchOrdersByCity();
+
+    const updatedGeoJSON = {
+      ...governatesData,
+      features: governatesData.features.map((feature) => {
+        const governorateName = normalizeName(feature.properties?.gouv_fr); // Normalize governorate name
+
+        // Log the governorate name for debugging
+        console.log('Governorate Name:', governorateName);
+
+        // Find matching cities in ordersByCity
+        const matchingCities = Object.keys(ordersByCity).filter(
+          (city) => normalizeName(city) === governorateName
+        );
+
+        // Log matching cities for debugging
+        console.log('Matching Cities:', matchingCities);
+
+        // Calculate total orders for the governorate
+        const totalOrders = matchingCities.reduce((sum, city) => {
+          return sum + (ordersByCity[city] || 0);
+        }, 0);
+
+        return {
+          ...feature,
+          properties: {
+            ...feature.properties,
+            orders: totalOrders,
+          },
+        };
+      }),
     };
-  }
-}
 
-interface MapOneProps {
-  className?: string;
-}
-
-const MapOne: React.FC<MapOneProps> = ({ className = "" }) => {
-  const mapRef = useRef<HTMLDivElement>(null);
-  const mapInstance = useRef<any>(null);
+    return updatedGeoJSON;
+  };
 
   useEffect(() => {
-    if (!mapRef.current) return;
+    const fetchData = async () => {
+      // Fetch GeoJSON data from the public folder
+      const response = await fetch(
+        'https://raw.githubusercontent.com/Undefined223/Tunisia-GeoJson/refs/heads/main/tunisia.geojson'
+      );
+      const geoJSON = await response.json();
 
-    // Dynamically import jsvectormap to ensure it's loaded
-    import("jsvectormap").then((jsVectorMapModule) => {
-      const jsVectorMap = jsVectorMapModule.default;
-
-      // Ensure the global object exists
-      if (!window.jsVectorMap) {
-        window.jsVectorMap = {
-          maps: {},
-        };
-      }
-
-      // Register the map definition
-      window.jsVectorMap.maps["tunisia"] = {
-        insets: [
-          {
-            width: 900,
-            height: 1000,
-            left: 100,
-            top: 50,
-            bbox: [
-              [30.2404, 7.5245], // Southwest coordinates
-              [37.7612, 11.5654], // Northeast coordinates
-            ],
-          },
-        ],
-        paths: tunisiaPaths,
-      };
-
-      // Log the map definition to verify it's registered
-      console.log("Tunisia map registered:", window.jsVectorMap.maps["tunisia"]);
-
-      // Initialize the map
-      mapInstance.current = new jsVectorMap({
-        selector: "#mapOne",
-        map: "tunisia",
-        zoomButtons: true,
-        zoomOnScroll: true,
-        zoomMax: 12,
-        zoomMin: 1,
-
-        // Styling
-        regionStyle: {
-          initial: {
-            fill: "#C8D0D8",
-            fillOpacity: 1,
-            stroke: "#ffffff",
-            strokeWidth: 1,
-            strokeOpacity: 1,
-          },
-          hover: {
-            fill: "#3056D3",
-            cursor: "pointer",
-          },
-          selected: {
-            fill: "#2449AF",
-          },
-          selectedHover: {},
-        },
-
-        // Labels configuration
-        labels: {
-          regions: {
-            render(code: string) {
-              const region = tunisiaPaths[code];
-              return region ? region.name : code;
-            },
-          },
-        },
-
-        // Event handlers
-        onRegionClick(event: any, code: string) {
-          console.log("Region clicked:", code);
-          // Add your click handler here
-        },
-
-        onRegionSelected(event: any, code: string, isSelected: boolean) {
-          console.log("Region selected:", code, isSelected);
-          // Add your selection handler here
-        },
-      });
-    }).catch((error) => {
-      console.error("Failed to load jsvectormap:", error);
-    });
-
-    // Cleanup
-    return () => {
-      if (mapInstance.current) {
-        mapInstance.current.destroy();
-      }
+      // Update GeoJSON with order counts
+      const updatedGeoJSON = await updateGeoJSONWithOrders(geoJSON);
+      setGovernatesData(updatedGeoJSON);
     };
+
+    fetchData();
   }, []);
 
-  return (
-    <div className={`rounded-sm border border-stroke bg-white p-7.5 shadow-default ${className}`}>
-      <div className="mb-4">
-        <h4 className="text-xl font-semibold text-black dark:text-white">
-          Tunisia Map
-        </h4>
-      </div>
+  if (!governatesData) {
+    return <div className="flex justify-center items-center h-screen">Loading map data...</div>;
+  }
 
-      <div className="h-90">
-        <div
-          id="mapOne"
-          ref={mapRef}
-          className="h-full w-full"
-        ></div>
+  return (
+    <div className="col-span-12 xl:col-span-6">
+      <div className="rounded-sm border border-stroke bg-white py-6 px-7.5 shadow-default dark:border-strokedark dark:bg-boxdark">
+        <h4 className="mb-2 text-xl font-semibold text-black dark:text-white">
+          Regional Orders Distribution
+        </h4>
+        <div className="h-[400px]">
+          <TunisiaMap governatesData={governatesData} />
+        </div>
       </div>
     </div>
   );
 };
 
-export default MapOne;
+export default HomePage;  
