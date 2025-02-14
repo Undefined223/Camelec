@@ -18,7 +18,8 @@ const passwordRoutes = require('./routes/passwordRoutes');
 const businessRoutes = require('./routes/BusinessRoute');
 const User = require("./models/userModel");
 const Order = require("./models/OrderSchema");
-
+const chatRoutes = require('./routes/chatRoutes')
+const messageRoutes = require('./routes/messageRoutes')
 
 
 
@@ -48,13 +49,14 @@ app.use(express.json());
 app.use('/api/products', ProductRoutes);
 app.use('/api/categories', CategoryRoutes);
 app.use('/api/subCategories', SubCategoryRoutes);
-
 app.use('/api/user', UserRoutes);
 app.use('/api/orders', OrderRoutes);
 app.use('/api/', VisitorRoutes);
 app.use('/api/announcments', AnnouncmentRoutes);
 app.use('/api/password/', passwordRoutes);
 app.use('/api/business/', businessRoutes);
+app.use("/api/chat", chatRoutes);
+app.use("/api/message", messageRoutes);
 
 
 
