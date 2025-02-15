@@ -1,9 +1,10 @@
 const asyncHandler = require("express-async-handler");
 const Message = require("../models/messageModel");
-const { User } = require("../models/userModel");
 const Chat = require("../models/chatModel");
-const axios = require('axios')
-const { OpenAI } = require("openai");
+const axios = require("axios");
+
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 const allMessages = asyncHandler(async (req, res) => {
     try {
@@ -12,115 +13,108 @@ const allMessages = asyncHandler(async (req, res) => {
             .populate("chat");
         res.json(messages);
     } catch (error) {
-        console.error("Error fetching messages:", error);
         res.status(400).json({ error: error.message });
     }
 });
-
-const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
-const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 const sendMessage = asyncHandler(async (req, res) => {
-    const { content, chatId, isStaffReply } = req.body;
+    const { content, chatId } = req.body;
+    const user = req.user;
 
     if (!content || !chatId) {
-        console.log("Invalid data passed into request");
-        return res.sendStatus(400);
+        return res.status(400).json({ error: "Invalid data passed into request" });
     }
-
-    // Check if the logged-in user is a member of the group chat
-    const isMember = await Chat.exists({
-        _id: chatId,
-        users: req.user._id,
-    });
-
-    if (!isMember) {
-        console.error("You are not a member of this group chat.");
-        return res.status(403).json({ message: "You are not a member of this group chat." });
-    }
-
-    // Create a new message
-    const newMessage = {
-        sender: req.user._id,
-        content: content,
-        chat: chatId,
-        isStaffReply: isStaffReply || false, // Mark if this is a staff reply
-    };
 
     try {
-        // Save the user's message to the database
-        let message = await Message.create(newMessage);
+        // Get chat and verify permissions
+        const chat = await Chat.findById(chatId)
+            .populate("users", "-password");
 
-        // Populate sender and chat details
-        message = await Message.populate(message, {
-            path: "sender",
-            select: "name pic",
+        if (!chat.users.some(u => u._id.equals(user._id))) {
+            return res.status(403).json({ error: "Not authorized for this chat" });
+        }
+
+        // Check if staff is replying
+        const isStaffReply = user.role === "staff";
+
+        // If staff replies, disable AI and add them to chat
+        if (isStaffReply) {
+            if (!chat.users.some(u => u._id.equals(user._id))) {
+                chat.users.push(user._id);
+            }
+            if (chat.isAIChat) {
+                chat.isAIChat = false;
+                await chat.save();
+            }
+        }
+
+        // Create and save message
+        const newMessage = await Message.create({
+            sender: user._id,
+            content,
+            chat: chatId,
+            isStaffReply,
         });
 
-        message = await Message.populate(message, {
-            path: "chat",
-            populate: {
-                path: "users",
-                select: "name pic email",
-            },
-        });
+        // Populate message data
+        const populatedMessage = await Message.populate(newMessage, [
+            { path: "sender", select: "name pic" },
+            { path: "chat", populate: { path: "users", select: "name pic email" } }
+        ]);
 
-        // Update the chat's latest message
-        await Chat.findByIdAndUpdate(chatId, { latestMessage: message });
+        // Update chat's latest message
+        chat.latestMessage = populatedMessage._id;
+        await chat.save();
 
-        // If this is not a staff reply, send the message to OpenRouter for an AI response
-        if (!isStaffReply) {
-            const openRouterResponse = await axios.post(
-                OPENROUTER_API_URL,
-                {
-                    model: "deepseek/deepseek-r1:free", // Use DeepSeek R1 model
-                    messages: [
-                        { role: "system", content: "You are a helpful assistant." },
-                        { role: "user", content: content },
-                    ],
-                },
-                {
-                    headers: {
-                        Authorization: `Bearer ${OPENROUTER_API_KEY}`,
-                        "Content-Type": "application/json",
-                    },
-                }
-            );
-
-            const aiReply = openRouterResponse.data.choices[0].message.content;
-
-            // Save the AI reply as a new message
-            const aiMessage = {
-                sender: null, // No sender for AI messages
-                content: aiReply,
+        // Generate AI response if needed
+        if (chat.isAIChat && !isStaffReply) {
+            const aiResponse = await generateAIResponse(content);
+            
+            const aiMessage = await Message.create({
+                content: aiResponse,
                 chat: chatId,
-                isStaffReply: false,
-            };
-
-            const savedAIMessage = await Message.create(aiMessage);
-
-            // Populate and send the AI message
-            const populatedAIMessage = await Message.populate(savedAIMessage, {
-                path: "chat",
-                populate: {
-                    path: "users",
-                    select: "name pic email",
-                },
             });
 
-            // Update the chat's latest message
-            await Chat.findByIdAndUpdate(chatId, { latestMessage: populatedAIMessage });
+            const populatedAIMessage = await Message.populate(aiMessage, [
+                { path: "chat", populate: { path: "users", select: "name pic email" } }
+            ]);
 
-            // Send both the user message and AI reply to the client
-            res.json([message, populatedAIMessage]);
-        } else {
-            // If this is a staff reply, just send the staff message
-            res.json(message);
+            chat.latestMessage = aiMessage._id;
+            await chat.save();
+
+            return res.json([populatedMessage, populatedAIMessage]);
         }
+
+        res.json([populatedMessage]);
     } catch (error) {
-        console.error("Error sending message:", error);
         res.status(400).json({ error: error.message });
     }
 });
+
+async function generateAIResponse(prompt) {
+    try {
+        const response = await axios.post(
+            OPENROUTER_API_URL,
+            {
+                model: "deepseek/deepseek-r1:free",
+                messages: [
+                    { role: "system", content: "You are a helpful customer support assistant." },
+                    { role: "user", content: prompt },
+                ],
+            },
+            {
+                headers: {
+                    Authorization: `Bearer ${OPENROUTER_API_KEY}`,
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+
+        return response.data.choices[0].message.content;
+    } catch (error) {
+        console.error("AI Response Error:", error);
+        return "Sorry, I'm having trouble responding right now. Please try again later.";
+    }
+}
 
 module.exports = { allMessages, sendMessage };

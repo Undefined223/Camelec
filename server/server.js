@@ -19,7 +19,8 @@ const businessRoutes = require('./routes/BusinessRoute');
 const User = require("./models/userModel");
 const Order = require("./models/OrderSchema");
 const chatRoutes = require('./routes/chatRoutes')
-const messageRoutes = require('./routes/messageRoutes')
+const messageRoutes = require('./routes/messageRoutes');
+const Message = require("./models/messageModel");
 
 
 
@@ -200,6 +201,47 @@ io.on('connection', async (socket) => {
       console.error('Error cancelling delivery:', error);
       socket.emit('error', 'Failed to cancel delivery');
     }
+  });
+
+  socket.on("joinChat", (chatId) => {
+    socket.join(chatId);
+    console.log(`User ${socket.id} joined chat ${chatId}`);
+  });
+
+  // Listen for new messages
+  socket.on("sendMessage", async (message) => {
+    try {
+      // Save the message to the database
+      const savedMessage = await Message.create(message);
+
+      // Populate sender and chat details
+      const populatedMessage = await Message.populate(savedMessage, {
+        path: "sender",
+        select: "name pic",
+      });
+
+      const finalMessage = await Message.populate(populatedMessage, {
+        path: "chat",
+        populate: {
+          path: "users",
+          select: "name pic email",
+        },
+      });
+
+      // Emit the message to the chat room
+      io.to(message.chat).emit("receiveMessage", finalMessage);
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
+  });
+  // Listen for typing events
+  socket.on("typing", (chatId) => {
+    socket.to(chatId).emit("typing", { userId: socket.id });
+  });
+
+  // Listen for stop typing events
+  socket.on("stopTyping", (chatId) => {
+    socket.to(chatId).emit("stopTyping", { userId: socket.id });
   });
 
   socket.on('disconnect', (reason) => {

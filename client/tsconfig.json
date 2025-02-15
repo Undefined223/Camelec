@@ -33,6 +33,6 @@
     ".next/types/**/*.ts",
     "tailwindcss-extend.d.ts",
     "src/declarations.d.ts"
-, "app/components/Sidebar/Sidebar.tsx"  ],
+, "app/components/Sidebar/Sidebar.tsx", "app/utils/socket.js"  ],
   "exclude": ["node_modules"]
 }
