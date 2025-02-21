@@ -96,63 +96,90 @@ const ChatCard = () => {
 
   // Modified sendMessage function in ChatCard
   // Add to useEffect
-useEffect(() => {
-  const socket = getSocket();
-
-  const handleMessage = (message: Message) => {
-    if (message.chat === selectedChat?._id) {
-      setMessages(prev => {
-        const exists = prev.some(m => m._id === message._id);
-        return exists ? prev : [...prev, message];
-      });
-      scrollToBottom();
-    }
-  };
-
-  const handleChatUpdate = (updatedChat: Chat) => {
-    setChats(prev => prev.map(c => c._id === updatedChat._id ? updatedChat : c));
-    if (selectedChat?._id === updatedChat._id) {
-      setSelectedChat(updatedChat);
-    }
-  };
-
-  socket.on("message received", handleMessage);
-  socket.on("chat updated", handleChatUpdate);
-
-  if (selectedChat?._id) {
-    socket.emit("join chat room", selectedChat._id);
-  }
-
-  return () => {
+  useEffect(() => {
+    console.log("ChatCard: Setting up socket listeners");
+    const socket = getSocket();
+  
+    const handleMessage = (message) => {
+      console.log("ChatCard: Message received", message);
+    
+      // Check if selectedChat is set properly
+      if (!selectedChat) {
+        console.log("No selected chat.");
+        return;
+      }
+    
+      if (message.chat._id === selectedChat._id) {
+        console.log("ChatCard: Message is for the current chat");
+        console.log(message.chat, selectedChat._id)
+        setMessages((prevMessages) => {
+          const exists = prevMessages.some(m => m._id === message._id);
+          console.log("Message exists:", exists);
+    
+          const updatedMessages = exists ? prevMessages : [...prevMessages, message];
+          console.log("Updated messages:", updatedMessages);
+          return updatedMessages;
+        });
+    
+        scrollToBottom();
+      } else {
+        
+        console.log("Message is not for the selected chat.");
+        console.log(message.chat._id, selectedChat._id)
+      }
+    };
+    
+  
+    const handleChatUpdate = (updatedChat) => {
+      console.log("ChatCard: Chat updated", updatedChat);
+      setChats((prev) => prev.map(c => c._id === updatedChat._id ? updatedChat : c));
+      if (selectedChat?._id === updatedChat._id) {
+        console.log("ChatCard: Updating selected chat");
+        setSelectedChat(updatedChat);
+      }
+    };
+  
+    // Clean up previous listeners before adding new ones
     socket.off("message received", handleMessage);
     socket.off("chat updated", handleChatUpdate);
-  };
-}, [selectedChat]);
+  
+    socket.on("message received", handleMessage);
+    socket.on("chat updated", handleChatUpdate);
+  
+    return () => {
+      console.log("ChatCard: Cleaning up socket listeners");
+      socket.off("message received", handleMessage);
+      socket.off("chat updated", handleChatUpdate);
+    };
+  }, [selectedChat]);
+  
+  useEffect(() => {
+    console.log("ChatCard: Joining/Leaving chat room based on selectedChat");
+    const socket = getSocket();
+    if (selectedChat?._id) {
+      console.log("ChatCard: Joining chat room", selectedChat._id);
+      socket.emit("join chat room", selectedChat._id);
+    }
+  
+    return () => {
+      if (selectedChat?._id) {
+        console.log("ChatCard: Leaving chat room", selectedChat._id);
+        socket.emit("leave chat room", selectedChat._id);
+      }
+    };
+  }, [selectedChat]);
+  
+  
 
 // Modify sendMessage function
 const sendMessage = async () => {
   if (!selectedChat || !newMessage.trim() || !currentUser) return;
 
-  // Declare tempId outside try block
-  let tempId: string | null = null;
-
   try {
     const socket = getSocket();
-    tempId = `staff-${Date.now()}`; // Now accessible in catch
-    
-    // Add temporary message
-    setMessages(prev => [...prev, {
-      _id: tempId,
-      content: newMessage,
-      sender: currentUser,
-      createdAt: new Date().toISOString(),
-      isStaffReply: true
-    }]);
-
     socket.emit("new message", {
       content: newMessage,
       chatId: selectedChat._id,
-      tempId,
       isStaffReply: true,
       sender: currentUser
     });
@@ -169,13 +196,10 @@ const sendMessage = async () => {
     setNewMessage("");
     scrollToBottom();
   } catch (error) {
-    // Now tempId is accessible here
-    if (tempId) {
-      setMessages(prev => prev.filter(msg => msg._id !== tempId));
-    }
     console.error("Error sending message:", error);
   }
 };
+
 
   const handleTyping = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewMessage(e.target.value);

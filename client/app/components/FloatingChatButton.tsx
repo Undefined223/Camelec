@@ -72,7 +72,6 @@ console.log(messages)
 
       // Setup socket listeners
       onReceiveMessage((newMessage: Message) => {
-        if (!newMessage.isStaffReply) return;
         // When staff replies, disable AI and update chat
         setChat(prev => prev ? { ...prev, isAIChat: false } : null);
         setMessages(prev => [...prev, newMessage]);
@@ -106,100 +105,131 @@ console.log(messages)
   };
 
 
-  useEffect(() => {
-    if (isOpen && chat) {
-      connectSocket();
-      joinChat(chat._id);
+ useEffect(() => {
+  if (isOpen && chat) {
+    connectSocket();
+    joinChat(chat._id);
 
-      onReceiveMessage((newMessage: Message) => {
-        setMessages((prev) => [...prev, newMessage]);
-        setIsAIThinking(false);
-        scrollToBottom();
-      });
+    // Ensure you're removing listeners before adding new ones
+    const socket = getSocket();
 
-      onTyping(({ userId }) => {
-        setTypingUsers((prev) => new Set(prev.add(userId)));
-      });
-
-      onStopTyping(({ userId }) => {
-        setTypingUsers((prev) => {
-          const newSet = new Set(prev);
-          newSet.delete(userId);
-          return newSet;
+    const handleMessage = (message) => {
+      // Check if the message belongs to the current chat and avoid duplicates
+      if (message.chat === chat?._id) {
+        setMessages((prev) => {
+          // Check if the message already exists before adding it to the state
+          const exists = prev.some(m => m._id === message._id);
+          if (exists) {
+            return prev; // Don't add the duplicate message
+          } else {
+            return [...prev, message]; // Add the new message
+          }
         });
-      });
-    }
+        scrollToBottom();
 
-    return () => {
-      if (chat) {
-        offReceiveMessage();
-        offTyping();
-        offStopTyping();
-        disconnectSocket();
+        // Only stop AI thinking for AI responses (non-staff replies)
+        if (!message.isStaffReply && !message.sender) {
+          setIsAIThinking(false);
+        }
       }
     };
-  }, [chat, isOpen]);
-  // Update the message handling useEffect
-  // Add to your useEffect
-useEffect(() => {
-  const socket = getSocket();
 
-  const handleMessage = (message: Message & { tempId?: string }) => {
-    if (message.chat === chat?._id) {
-      setMessages(prev => {
-        // Replace temporary message or add new
-        const newMessages = prev.filter(m => m._id !== message.tempId);
-        return [...newMessages, message];
-      });
-      scrollToBottom();
-      
-      // Only stop AI thinking for AI responses
-      if (!message.isStaffReply && message.sender === undefined) {
-        setIsAIThinking(false);
-      }
-    }
-  };
+    const handleAIError = () => {
+      setIsAIThinking(false);
+    };
 
-  const handleAIError = () => setIsAIThinking(false);
-
-  socket.on("message received", handleMessage);
-  socket.on("ai error", handleAIError);
-
-  return () => {
+    // Clean up previous listeners before adding new ones
     socket.off("message received", handleMessage);
     socket.off("ai error", handleAIError);
-  };
-}, [chat]);
+
+    socket.on("message received", handleMessage);
+    socket.on("ai error", handleAIError);
+
+    return () => {
+      // Clean up listeners when component is unmounted or when dependencies change
+      socket.off("message received", handleMessage);
+      socket.off("ai error", handleAIError);
+      disconnectSocket();
+    };
+  }
+}, [chat, isOpen]);
+
+  
+  // Update the message handling useEffect
+  // Add to your useEffect
+  useEffect(() => {
+    console.log("FloatingChatButton: Setting up socket listeners");
+    const socket = getSocket();
+  
+    const handleMessage = (message) => {
+      console.log("FloatingChatButton: Message received", message);
+      if (message.chat === chat?._id) {
+        console.log("FloatingChatButton: Message is for the current chat");
+        setMessages((prev) => {
+          const exists = prev.some(m => m._id === message._id);
+          if (exists) {
+            console.log("FloatingChatButton: Message already exists");
+          } else {
+            console.log("FloatingChatButton: Adding new message");
+          }
+          const updatedMessages = exists ? prev : [...prev, message];
+          console.log("FloatingChatButton: Updated messages", updatedMessages);
+          return updatedMessages;
+        });
+        scrollToBottom();
+  
+        // Only stop AI thinking for AI responses
+        if (!message.isStaffReply && !message.sender) {
+          console.log("FloatingChatButton: Stopping AI thinking");
+          setIsAIThinking(false);
+        }
+      }
+    };
+  
+    const handleAIError = () => {
+      console.log("FloatingChatButton: AI error occurred");
+      setIsAIThinking(false);
+    };
+  
+    // Clean up previous listeners before adding new ones
+    socket.off("message received", handleMessage);
+    socket.off("ai error", handleAIError);
+  
+    socket.on("message received", handleMessage);
+    socket.on("ai error", handleAIError);
+  
+    return () => {
+      console.log("FloatingChatButton: Cleaning up socket listeners");
+      socket.off("message received", handleMessage);
+      socket.off("ai error", handleAIError);
+    };
+  }, [chat]);
+  
+  
+  
 
 // Modify send handler
 const handleSend = async () => {
   if (!input.trim() || !chat || isSending) return;
 
-  const tempId = `temp-${Date.now()}`;
-  setMessages(prev => [...prev, {
-    _id: tempId,
-    content: input.trim(),
-    createdAt: new Date().toISOString(),
-    isStaffReply: false
-  }]);
-
-  setInput("");
   setIsAIThinking(true);
-  
+
   try {
     const socket = getSocket();
     socket.emit("new message", {
       content: input.trim(),
       chatId: chat._id,
-      tempId,
       isStaffReply: false,
       sender: user
     });
+
+    setInput("");
   } catch (error) {
     setIsAIThinking(false);
-    setMessages(prev => prev.filter(msg => msg._id !== tempId));
+    console.error("Error sending message:", error);
   }
 };
+
   return (
     <div className="fixed bottom-6 right-6 z-50">
       <motion.button
