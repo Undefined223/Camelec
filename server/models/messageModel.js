@@ -6,6 +6,7 @@ const messageModel = mongoose.Schema(
         content: { type: String, trim: true },
         chat: { type: mongoose.Schema.Types.ObjectId, ref: "Chat" },
         isStaffReply: { type: Boolean, default: false },
+        read: { type: Boolean, default: false }
     },{timestamps: true}
 );
 

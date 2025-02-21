@@ -21,6 +21,8 @@ const Order = require("./models/OrderSchema");
 const chatRoutes = require('./routes/chatRoutes')
 const messageRoutes = require('./routes/messageRoutes');
 const Message = require("./models/messageModel");
+const Chat = require("./models/chatModel");
+const generateAIResponse = require("./utils/GenerateAiResponse");
 
 
 
@@ -39,7 +41,8 @@ const { PORT } = process.env;
 
 
 app.use(cors({
-  methods: ["GET", "POST", "PUT", "DELETE"],
+  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+  origin: "http://localhost:3000",
   credentials: true,
 }));
 
@@ -96,12 +99,12 @@ const server = app.listen(PORT, () => {
   console.log(`Server is listening on port ${PORT}`);
 });
 
-const socketServer = http.createServer(app);
 const io = require("socket.io")(server, {
   pingTimeout: 60000,
   pingInterval: 25000,
   cors: {
     methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: "http://localhost:3000",
     credentials: true,
   },
 });
@@ -202,47 +205,76 @@ io.on('connection', async (socket) => {
       socket.emit('error', 'Failed to cancel delivery');
     }
   });
-
-  socket.on("joinChat", (chatId) => {
+  socket.on("join chat room", (chatId) => {
     socket.join(chatId);
     console.log(`User ${socket.id} joined chat ${chatId}`);
   });
+  // Handle new messages
+ // Modify the "new message" handler
+ socket.on("new message", async (messageData) => {
+  try {
+    // Create and broadcast user message
+    const message = await Message.create({
+      content: messageData.content,
+      chat: messageData.chatId,
+      sender: messageData.sender._id,
+      isStaffReply: messageData.isStaffReply,
+      tempId: messageData.tempId
+    });
 
-  // Listen for new messages
-  socket.on("sendMessage", async (message) => {
-    try {
-      // Save the message to the database
-      const savedMessage = await Message.create(message);
+    const populatedMessage = await Message.populate(message, [
+      { path: "sender", select: "name pic" },
+      { path: "chat", populate: { path: "users" } }
+    ]);
 
-      // Populate sender and chat details
-      const populatedMessage = await Message.populate(savedMessage, {
-        path: "sender",
-        select: "name pic",
-      });
+    const responseData = {
+      ...populatedMessage.toObject(),
+      tempId: messageData.tempId
+    };
 
-      const finalMessage = await Message.populate(populatedMessage, {
-        path: "chat",
-        populate: {
-          path: "users",
-          select: "name pic email",
-        },
-      });
+    io.to(messageData.chatId).emit("message received", responseData);
 
-      // Emit the message to the chat room
-      io.to(message.chat).emit("receiveMessage", finalMessage);
-    } catch (error) {
-      console.error("Error sending message:", error);
+    // Handle AI response
+    const chat = await Chat.findById(messageData.chatId);
+    if (chat.isAIChat && !messageData.isStaffReply) {
+      try {
+        const aiResponse = await generateAIResponse(messageData.content);
+        const aiMessage = await Message.create({
+          content: aiResponse,
+          chat: messageData.chatId
+        });
+
+        const populatedAIMessage = await Message.populate(aiMessage, [
+          { path: "chat" }
+        ]);
+
+        io.to(messageData.chatId).emit("message received", {
+          ...populatedAIMessage.toObject(),
+          isStaffReply: false
+        });
+      } catch (aiError) {
+        console.error("AI Response Failed:", aiError);
+        io.to(messageData.chatId).emit("ai error", {
+          chatId: messageData.chatId,
+          tempId: messageData.tempId
+        });
+      }
     }
-  });
-  // Listen for typing events
+  } catch (error) {
+    console.error("Message handling error:", error);
+  }
+});
+
+  // Typing indicators
   socket.on("typing", (chatId) => {
-    socket.to(chatId).emit("typing", { userId: socket.id });
+    socket.broadcast.to(chatId).emit("user typing");
   });
 
-  // Listen for stop typing events
-  socket.on("stopTyping", (chatId) => {
-    socket.to(chatId).emit("stopTyping", { userId: socket.id });
+  socket.on("stop typing", (chatId) => {
+    socket.broadcast.to(chatId).emit("user stopped typing");
   });
+
+
 
   socket.on('disconnect', (reason) => {
     console.log('Client disconnected:', socket.id, 'Reason:', reason);
@@ -257,12 +289,6 @@ app.use('/uploads', (req, res, next) => {
   res.setHeader('Access-Control-Allow-Credentials', true);
   next();
 }, express.static(path.join(__dirname, 'uploads')));
-
-
-
-
-
-
 
 
 

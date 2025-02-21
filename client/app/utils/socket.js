@@ -15,6 +15,13 @@ export const connectSocket = () => {
         socket.connect();
     }
 };
+export const initializeSocket = () => {
+  if (!socket.connected) {
+    socket.connect();
+  }
+};
+
+export const getSocket = () => socket;
 
 // Disconnect from the server
 export const disconnectSocket = () => {
@@ -25,12 +32,12 @@ export const disconnectSocket = () => {
 
 // Join a chat room
 export const joinChat = (chatId) => {
-    socket.emit("joinChat", chatId);
+    socket.emit("join chat room", chatId);
 };
 
 // Send a message
 export const sendMessage = (message) => {
-    socket.emit("sendMessage", message);
+    socket.emit("new message", message);
 };
 
 // Notify server that the user is typing
@@ -45,7 +52,7 @@ export const stopTyping = (chatId) => {
 
 // Listen for new messages
 export const onReceiveMessage = (callback) => {
-    socket.on("receiveMessage", callback);
+    socket.on("message received", callback);
 };
 
 // Listen for typing events

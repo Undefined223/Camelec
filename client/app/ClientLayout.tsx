@@ -8,6 +8,8 @@ import { Suspense, useEffect, useState } from "react";
 import axiosInstance from "./components/AxiosInstance";
 import Loading from "./components/Loading";
 import FloatingChatButton from "./components/FloatingChatButton";
+import { SocketProvider } from "./context/SocketProvider";
+import { ChatProvider } from "./context/ChatProvider";
 
 export default function ClientLayout({
     children,
@@ -38,6 +40,10 @@ export default function ClientLayout({
 
     return (
         <UserProvider>
+            <SocketProvider>
+                <ChatProvider>
+
+
             {!isAdminPage && <Navbar />}
             <FloatingChatButton/> 
             <div className="relative h-full w-full bg-[#ffffff] ">
@@ -52,6 +58,10 @@ export default function ClientLayout({
                 )}
             </div>
             {!isAdminPage && <Footer />}
+            </ChatProvider>
+
+            </SocketProvider>
+
         </UserProvider>
     );
 }
