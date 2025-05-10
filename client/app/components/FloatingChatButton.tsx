@@ -52,7 +52,9 @@ const FloatingChatButton: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatWindowRef = useRef<HTMLDivElement>(null);
   const { user } = useContext(UserContext);
-console.log(messages)
+
+  console.log(messages)
+
   const toggleChat = () => {
     setIsOpen(!isOpen);
     if (!isOpen && !chat) {
@@ -60,21 +62,17 @@ console.log(messages)
     }
   };
 
-  // In initializeChat function
   const initializeChat = async () => {
     try {
       const response = await axiosInstance.post("/api/chat");
       setChat(response.data);
 
-      // Connect to Socket.io and join room
       connectSocket();
       joinChat(response.data._id);
 
-      // Setup socket listeners
       onReceiveMessage((newMessage: Message) => {
-        // When staff replies, disable AI and update chat
-        setChat(prev => prev ? { ...prev, isAIChat: false } : null);
-        setMessages(prev => [...prev, newMessage]);
+        setChat((prev) => (prev ? { ...prev, isAIChat: false } : null));
+        setMessages((prev) => [...prev, newMessage]);
       });
 
       loadMessages(response.data._id);
@@ -104,136 +102,76 @@ console.log(messages)
     }, 100);
   };
 
-
- useEffect(() => {
-  if (isOpen && chat) {
-    connectSocket();
-    joinChat(chat._id);
-
-    // Ensure you're removing listeners before adding new ones
-    const socket = getSocket();
-
-    const handleMessage = (message) => {
-      // Check if the message belongs to the current chat and avoid duplicates
-      if (message.chat === chat?._id) {
-        setMessages((prev) => {
-          // Check if the message already exists before adding it to the state
-          const exists = prev.some(m => m._id === message._id);
-          if (exists) {
-            return prev; // Don't add the duplicate message
-          } else {
-            return [...prev, message]; // Add the new message
-          }
-        });
-        scrollToBottom();
-
-        // Only stop AI thinking for AI responses (non-staff replies)
-        if (!message.isStaffReply && !message.sender) {
-          setIsAIThinking(false);
-        }
-      }
-    };
-
-    const handleAIError = () => {
-      setIsAIThinking(false);
-    };
-
-    // Clean up previous listeners before adding new ones
-    socket.off("message received", handleMessage);
-    socket.off("ai error", handleAIError);
-
-    socket.on("message received", handleMessage);
-    socket.on("ai error", handleAIError);
-
-    return () => {
-      // Clean up listeners when component is unmounted or when dependencies change
-      socket.off("message received", handleMessage);
-      socket.off("ai error", handleAIError);
-      disconnectSocket();
-    };
-  }
-}, [chat, isOpen]);
-
-  
-  // Update the message handling useEffect
-  // Add to your useEffect
   useEffect(() => {
-    console.log("FloatingChatButton: Setting up socket listeners");
-    const socket = getSocket();
-  
-    const handleMessage = (message) => {
-      console.log("FloatingChatButton: Message received", message);
-      if (message.chat === chat?._id) {
-        console.log("FloatingChatButton: Message is for the current chat");
-        setMessages((prev) => {
-          const exists = prev.some(m => m._id === message._id);
-          if (exists) {
-            console.log("FloatingChatButton: Message already exists");
-          } else {
-            console.log("FloatingChatButton: Adding new message");
+    if (isOpen && chat) {
+      connectSocket();
+      joinChat(chat._id);
+
+      const socket = getSocket();
+
+      const handleMessage = (message) => {
+        console.log(message)
+        if (message.chat === chat?._id) {
+          setMessages((prev) => {
+            const exists = prev.some((m) => m._id === message._id);
+            if (exists) {
+              return prev;
+            } else {
+              return [...prev, message];
+            }
+          });
+          scrollToBottom();
+
+          if (!message.isStaffReply && !message.sender) {
+            setIsAIThinking(false);
           }
-          const updatedMessages = exists ? prev : [...prev, message];
-          console.log("FloatingChatButton: Updated messages", updatedMessages);
-          return updatedMessages;
-        });
-        scrollToBottom();
-  
-        // Only stop AI thinking for AI responses
-        if (!message.isStaffReply && !message.sender) {
-          console.log("FloatingChatButton: Stopping AI thinking");
-          setIsAIThinking(false);
         }
-      }
-    };
-  
-    const handleAIError = () => {
-      console.log("FloatingChatButton: AI error occurred");
-      setIsAIThinking(false);
-    };
-  
-    // Clean up previous listeners before adding new ones
-    socket.off("message received", handleMessage);
-    socket.off("ai error", handleAIError);
-  
-    socket.on("message received", handleMessage);
-    socket.on("ai error", handleAIError);
-  
-    return () => {
-      console.log("FloatingChatButton: Cleaning up socket listeners");
+      };
+
+      const handleAIError = () => {
+        setIsAIThinking(false);
+      };
+
       socket.off("message received", handleMessage);
       socket.off("ai error", handleAIError);
-    };
-  }, [chat]);
-  
-  
-  
 
-// Modify send handler
-const handleSend = async () => {
-  if (!input.trim() || !chat || isSending) return;
+      socket.on("message received", handleMessage);
+      socket.on("ai error", handleAIError);
 
-  setIsAIThinking(true);
+      return () => {
+        socket.off("message received", handleMessage);
+        socket.off("ai error", handleAIError);
+        disconnectSocket();
+      };
+    }
+  }, [chat, isOpen]);
 
-  try {
-    const socket = getSocket();
-    socket.emit("new message", {
-      content: input.trim(),
-      chatId: chat._id,
-      isStaffReply: false,
-      sender: user
-    });
+  const handleSend = async () => {
+    if (!input.trim() || !chat || isSending) return;
 
-    setInput("");
-  } catch (error) {
-    setIsAIThinking(false);
-    console.error("Error sending message:", error);
-  }
-};
+    setIsAIThinking(true);
+
+    try {
+      const socket = getSocket();
+      socket.emit("new message", {
+        content: input.trim(),
+        chatId: chat._id,
+        isStaffReply: false,
+        sender: user,
+      });
+
+      setInput("");
+    } catch (error) {
+      setIsAIThinking(false);
+      console.error("Error sending message:", error);
+    }
+  };
 
   return (
     <div className="fixed bottom-6 right-6 z-50">
+      {/* Floating Chat Button */}
       <motion.button
-        className="flex items-center justify-center w-16 h-16 bg-blue-500 text-white rounded-full shadow-lg hover:bg-blue-600 transition-all transform hover:scale-110 active:scale-95"
+        className="flex items-center justify-center w-16 h-16 bg-sky-500 text-white rounded-full shadow-lg hover:bg-sky-600 hover:shadow-xl transition-all transform animate-pulse"
         onClick={toggleChat}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
@@ -241,10 +179,11 @@ const handleSend = async () => {
         <IoChatbubbleEllipses className="w-8 h-8" />
       </motion.button>
 
+      {/* Chat Window */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="absolute bottom-20 right-0 w-96 bg-white rounded-lg shadow-xl flex flex-col"
+            className="absolute bottom-20 right-0 w-96 bg-white rounded-lg shadow-2xl flex flex-col border border-gray-200 overflow-hidden"
             style={{ height: "600px" }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -252,7 +191,7 @@ const handleSend = async () => {
             transition={{ duration: 0.3 }}
           >
             {/* Chat Header */}
-            <div className="flex justify-between items-center p-4 bg-blue-500 text-white rounded-t-lg">
+            <div className="flex justify-between items-center p-4 bg-sky-500 text-white">
               <h3 className="text-lg font-semibold flex items-center gap-2">
                 {chat?.isAIChat ? "AI Support" : "Live Support"}
                 {isAIThinking && (
@@ -260,7 +199,7 @@ const handleSend = async () => {
                 )}
               </h3>
               <button
-                className="p-1 hover:bg-blue-600 rounded-full transition-all"
+                className="p-1 hover:bg-sky-600 rounded-full transition-all"
                 onClick={toggleChat}
               >
                 <IoClose className="w-6 h-6" />
@@ -275,51 +214,71 @@ const handleSend = async () => {
             >
               {isLoading ? (
                 <div className="flex justify-center items-center h-full">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500" />
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-sky-500" />
                 </div>
               ) : (
                 <>
                   {messages.map((msg) => (
-                    <div
+                    <motion.div
                       key={msg._id}
-                      className={`mb-4 ${msg.sender?._id === user?._id ? "text-right" : "text-left"
-                        }`}
+                      className={`mb-4 ${
+                        msg.sender?._id === user?._id ? "text-right" : "text-left"
+                      }`}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.2 }}
                     >
+                        {msg.sender && (
+                          <div className="text-xs font-medium text-sky-700 mb-1">
+                            {msg.sender.name}
+                          </div>
+                        )}
                       <div
-                        className={`inline-block p-3 rounded-lg max-w-[80%] ${msg.sender?._id === user?._id
-                          ? "bg-blue-500 text-white"
-                          : "bg-gray-100 text-gray-800"
-                          }`}
+                        className={`inline-block p-3 rounded-lg max-w-[80%] ${
+                          msg.sender?._id === user?._id
+                            ? "bg-sky-500 text-white"
+                            : "bg-sky-100 text-gray-800"
+                        }`}
                       >
+                        {/* Sender Name */}
+                      
+                        {/* AI Indicator */}
+                        {!msg.sender && (
+                          <div className="text-xs font-medium text-sky-700 mb-1">
+                            Camelec AI
+                          </div>
+                        )}
+                        {/* Message Content */}
                         <p className="text-sm whitespace-pre-wrap break-words">
                           {msg.content}
                         </p>
-                        <span className="text-xs opacity-75 mt-1 block">
+                        {/* Timestamp */}
+                        <span className="text-xs text-gray-500 mt-1 block">
                           {new Date(msg.createdAt).toLocaleTimeString([], {
                             hour: "2-digit",
                             minute: "2-digit",
                           })}
                         </span>
                       </div>
-                    </div>
+                    </motion.div>
                   ))}
                   {isAIThinking && (
                     <div className="flex items-center gap-2 text-gray-500 text-sm">
                       <div className="flex gap-1">
                         <span
-                          className="w-2 h-2 bg-gray-300 rounded-full animate-bounce"
+                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
                           style={{ animationDelay: "0s" }}
                         />
                         <span
-                          className="w-2 h-2 bg-gray-300 rounded-full animate-bounce"
+                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
                           style={{ animationDelay: "0.2s" }}
                         />
                         <span
-                          className="w-2 h-2 bg-gray-300 rounded-full animate-bounce"
+                          className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"
                           style={{ animationDelay: "0.4s" }}
                         />
                       </div>
-                      AI is typing...
+                      AI is thinking...
                     </div>
                   )}
                   <div ref={messagesEndRef} />
@@ -328,12 +287,12 @@ const handleSend = async () => {
             </div>
 
             {/* Chat Input */}
-            <div className="p-4 bg-gray-50 border-t">
+            <div className="p-4 bg-gray-50 border-t border-gray-200">
               <div className="flex gap-2">
                 <input
                   type="text"
                   placeholder="Type a message..."
-                  className="flex-1 p-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+                  className="flex-1 p-3 bg-white text-gray-800 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 transition-all"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={(e) =>
@@ -342,8 +301,12 @@ const handleSend = async () => {
                   disabled={isSending}
                 />
                 <button
-                  className={`px-4 py-2 bg-blue-500 text-white rounded-lg transition-all flex items-center justify-center
-                    ${isSending ? "opacity-50 cursor-not-allowed" : "hover:bg-blue-600"}`}
+                  className={`px-4 py-2 bg-sky-500 text-white rounded-lg transition-all flex items-center justify-center
+                    ${
+                      isSending
+                        ? "opacity-50 cursor-not-allowed"
+                        : "hover:bg-sky-600"
+                    }`}
                   onClick={handleSend}
                   disabled={isSending}
                 >

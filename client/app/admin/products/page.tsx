@@ -78,7 +78,7 @@ const ProductList: React.FC = () => {
         <div className="flex gap-2">
           <button
             className="bg-blue-600 text-white px-4 py-2 rounded-md flex items-center gap-2 hover:bg-blue-700 transition-colors"
-            onClick={() => router.push('/adminn/add-product')}
+            onClick={() => router.push('/admin/add-product')}
           >
             <FaPlus /> Add New Product
           </button>

@@ -20,25 +20,13 @@ const formatUserData = (user) => ({
 // Register a new user
 const registerUser = asyncHandler(async (req, res) => {
     const { name, email, password, role } = req.body;
-    const pic = req.file;
 
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
 
-    let picData;
-    if (pic) {
-        picData = {
-            data: pic.path,
-            contentType: pic.mimetype,
-        };
-    } else {
-        picData = {
-            data: 'uploads/default.jpg',
-            contentType: 'image/jpeg',
-        };
-    }
+ 
 
     try {
         const userExists = await User.findOne({ email });
@@ -51,7 +39,6 @@ const registerUser = asyncHandler(async (req, res) => {
             name,
             email,
             password,
-            pic: picData,
             role,
         });
 
@@ -159,4 +146,41 @@ const getUserById = asyncHandler(async (req, res) => {
     }
 });
 
-module.exports = { registerUser, authUser, updateUser, getAllUsers, getUserById };
+const refreshToken = async (req, res) => {
+    try {
+        const { refreshToken } = req.body;
+
+        if (!refreshToken) {
+            return res.status(401).json({ message: 'No refresh token provided' });
+        }
+
+        // Verify token
+        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+
+        // Find user with valid refresh token
+        const user = await User.findOne({
+            _id: decoded.id,
+            refreshTokenExpires: { $gt: Date.now() }
+        });
+
+        if (!user || !(await bcrypt.compare(refreshToken, user.refreshToken))) {
+            return res.status(401).json({ message: 'Invalid refresh token' });
+        }
+
+        // Generate new tokens
+        const { accessToken, refreshToken: newRefreshToken } = generateToken(user);
+
+        // Update refresh token
+        user.refreshToken = await bcrypt.hash(newRefreshToken, 12);
+        await user.save();
+
+        res.json({
+            token: accessToken,
+            refreshToken: newRefreshToken
+        });
+    } catch (error) {
+        res.status(401).json({ message: 'Invalid refresh token' });
+    }
+};
+
+module.exports = { registerUser, authUser, updateUser, getAllUsers, getUserById, refreshToken };

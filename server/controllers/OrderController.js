@@ -2,6 +2,7 @@ const Order = require('../models/OrderSchema');
 const axios = require('axios');
 const User = require('../models/userModel');
 const { sendOrderConfirmationEmail } = require('../services/emailService');
+const { emitToAdmins } = require('../utils/SocketUtils');
 
 const splitName = (fullName) => {
     const [firstName, ...lastNameArr] = fullName.split(' ');
@@ -98,12 +99,22 @@ const createOrder = async (req, res) => {
 
                     await sendOrderConfirmationEmail(user, populatedOrder);
 
+                    emitToAdmins('newOrderNotification', {
+                        orderId: savedOrder._id,
+                        message: `New order placed by ${user.name}`,
+                      });
+
+
+
                     return res.status(200).json({
                         message: 'Payment initiated. Please complete the payment using the provided URL.',
                         paymentUrl: paymentResponse.data.payUrl,
                         paymentRef: paymentResponse.data.paymentRef,
                         orderId: savedOrder._id
                     });
+
+                   
+
                 } else {
                     return res.status(400).json({ message: 'Payment initiation failed. Please try again.' });
                 }
@@ -332,5 +343,30 @@ const getOrdersByCity = async (req, res) => {
     }
   };
 
-module.exports = { createOrder, getOrdersByUser, getOrders, updateOrderStatus, getPendingOrders, OrderDeliverySubmit, getOrderById, getProcessingOrders, getOrdersByCity };
+  const getorderStatus = async (req, res) => {
+    try {
+      const orderIds = req.query.ids.split(',');
+      
+      // Add validation
+      if (!orderIds || !Array.isArray(orderIds)) {
+        return res.status(400).json({ error: 'Invalid order IDs' });
+      }
+  
+      const orders = await Order.find({ 
+        _id: { $in: orderIds },
+        orderStatus: { $nin: ['completed', 'cancelled'] } // Match frontend filter
+      });
+  
+      res.json(orders.map(o => ({
+        id: o._id,
+        status: o.orderStatus,
+        lastLocation: o.lastLocation
+      })));
+    } catch (error) {
+      console.error('Error fetching order statuses:', error);
+      res.status(500).json({ error: 'Failed to fetch order statuses' });
+    }
+  }
+
+module.exports = { createOrder, getOrdersByUser, getOrders, updateOrderStatus, getPendingOrders, OrderDeliverySubmit, getOrderById, getProcessingOrders, getOrdersByCity, getorderStatus };
 

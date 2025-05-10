@@ -5,6 +5,7 @@ const {
     updateUser,
     getAllUsers,
     getUserById,
+    refreshToken,
 } = require("../controllers/userController");
 const { protect, admin, adminOrOwner } = require('../middleware/AdminMiddleware');
 const { upload } = require("../utils/storage");
@@ -15,6 +16,8 @@ router.put('/:id', upload.single('pic'), protect, adminOrOwner, updateUser);
 router.post("/login", authUser);
 router.get("/all", protect, admin, getAllUsers);
 router.get("/:id", protect, adminOrOwner, getUserById);
+router.post("/refresh", protect, adminOrOwner, refreshToken);
+
 
 
 

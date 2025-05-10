@@ -1,4 +1,7 @@
 import { io } from "socket.io-client";
+import { getToken } from "../components/tokenUtility";
+
+
 
 // Initialize Socket.IO client
 const socket = io("http://localhost:5000", {
@@ -7,6 +10,7 @@ const socket = io("http://localhost:5000", {
     reconnectionAttempts: 5,
     reconnectionDelay: 1000,
     transports: ["websocket"], // Use WebSocket only
+    query: { token: getToken() },// Pass token securely    
 });
 
 // Connect to the server
@@ -77,6 +81,35 @@ export const offTyping = () => {
 
 export const offStopTyping = () => {
     socket.off("stopTyping");
+};
+
+export const onNewOrderNotification = (callback) => {
+    socket.on("newOrderNotification", callback);
+};
+
+// Remove new order notification listener
+export const offNewOrderNotification = () => {
+    socket.off("newOrderNotification");
+};
+
+// Listen for delivery started notifications
+export const onDeliveryStarted = (callback) => {
+    socket.on("deliveryStarted", callback);
+};
+
+// Remove delivery started notification listener
+export const offDeliveryStarted = () => {
+    socket.off("deliveryStarted");
+};
+
+// Listen for new chat notifications
+export const onNewChatNotification = (callback) => {
+    socket.on("newChatNotification", callback);
+};
+
+// Remove new chat notification listener
+export const offNewChatNotification = () => {
+    socket.off("newChatNotification");
 };
 
 export default socket;

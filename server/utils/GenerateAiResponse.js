@@ -18,8 +18,8 @@ async function generateAIResponse(prompt) {
       await initializeImports();
     }
 
-    const langCode = franc(prompt, { minLength: 3 }) || 'eng';
-    const language = ISO6391.getName(langCode) || 'English';
+    const langCode = franc(prompt, { minLength: 3 });
+    const language = ISO6391.getName(langCode) ;
 
     const systemPrompt = [
       `Respond in ${language} without any introductory phrases.`,
@@ -31,8 +31,10 @@ async function generateAIResponse(prompt) {
       "- Explanations about being an AI",
       "- Internal thinking processes",
       "- Non-electrical topics",
-      "Format: Clear, concise technical answers without markdown"
+      "Format: Clear, concise technical answers without markdown or additional thoughts"
     ].join(' ');
+
+    console.log(language)
 
     const response = await axios.post(
       OPENROUTER_API_URL,

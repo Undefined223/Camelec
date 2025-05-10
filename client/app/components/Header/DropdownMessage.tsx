@@ -1,11 +1,71 @@
-import { useEffect, useRef, useState } from "react";
+"use client";
+import { useContext, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import ClickOutside from "@/app/components/ClickOutside";
+import UserContext from "@/app/context/InfoPlusProvider";
+import { useRouter } from "next/navigation";
 
 const DropdownMessage = () => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [notifying, setNotifying] = useState(true);
+  const { notifications, removeNotification } = useContext(UserContext);
+  const router = useRouter();
+
+  // Get chat notifications sorted by timestamp
+  const chatNotifications = notifications
+    .filter((n) => n.type === "chat")
+    .sort(
+      (a, b) =>
+        new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
+    );
+
+  // Update notification dot visibility
+  useEffect(() => {
+    setNotifying(chatNotifications.length > 0);
+  }, [notifications]);
+
+  // Format timestamp to relative time
+  const formatTime = (timestamp: Date) => {
+    const now = new Date();
+    const diff = now.getTime() - new Date(timestamp).getTime();
+    const minutes = Math.floor(diff / 60000);
+
+    if (minutes < 1) return "Just now";
+    if (minutes < 60) return `${minutes}m ago`;
+
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+
+    const days = Math.floor(hours / 24);
+    return `${days}d ago`;
+  };
+
+  const scrollToBottom = () => {
+    window.scrollTo({
+      top: document.documentElement.scrollHeight,
+      behavior: "smooth"
+    });
+  };
+
+  const handleNotificationClick = (notificationId: string) => {
+    removeNotification(notificationId);
+    setDropdownOpen(false);
+    
+    // Navigate to admin page first
+    router.push("/admin");
+    
+    // Wait for navigation then scroll
+    setTimeout(() => {
+      const chatContainer = document.getElementById("chat-container");
+      if (chatContainer) {
+        chatContainer.scrollTo({
+          top: chatContainer.scrollHeight,
+          behavior: "smooth"
+        });
+      }
+    }, 300); // Short delay to ensure page transition
+  };
 
 
   return (
@@ -20,9 +80,8 @@ const DropdownMessage = () => {
           href="#"
         >
           <span
-            className={`absolute -right-0.5 -top-0.5 z-1 h-2 w-2 rounded-full bg-meta-1 ${
-              notifying === false ? "hidden" : "inline"
-            }`}
+            className={`absolute -right-0.5 -top-0.5 z-1 h-2 w-2 rounded-full bg-meta-1 ${!notifying ? "hidden" : "inline"
+              }`}
           >
             <span className="absolute -z-1 inline-flex h-full w-full animate-ping rounded-full bg-meta-1 opacity-75"></span>
           </span>
@@ -54,155 +113,48 @@ const DropdownMessage = () => {
           </svg>
         </Link>
 
-        {/* <!-- Dropdown Start --> */}
         {dropdownOpen && (
-          <div
-            className={`absolute -right-16 mt-2.5 flex h-90  flex-col rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark sm:right-0 sm:w-80`}
-          >
+          <div className="absolute -right-16 mt-2.5 flex h-90 w-80 flex-col rounded-sm border border-stroke bg-white shadow-default dark:border-strokedark dark:bg-boxdark sm:right-0">
             <div className="px-4.5 py-3">
-              <h5 className="text-sm font-medium text-bodydark2">Messages</h5>
+              <h5 className="text-sm font-medium text-bodydark2">
+                Chat Notifications
+              </h5>
             </div>
 
             <ul className="flex h-auto flex-col overflow-y-auto">
-              <li>
-                <Link
-                  className="flex gap-4.5 border-t border-stroke px-4.5 py-3 hover:bg-gray-2 dark:border-strokedark dark:hover:bg-meta-4"
-                  href="/messages"
-                >
-                  <div className="h-12.5 w-12.5 rounded-full">
-                    <Image
-                      width={112}
-                      height={112}
-                      src={"/images/user/user-02.png"}
-                      alt="User"
-                      style={{
-                        width: "auto",
-                        height: "auto",
-                      }}
-                    />
-                  </div>
+              {chatNotifications.map((notification) => (
+                <li key={notification.id}>
+                  <Link
+                    onClick={() => handleNotificationClick(notification.id)}
+                    className="flex gap-4.5 border-t border-stroke px-4.5 py-3 hover:bg-gray-2 dark:border-strokedark dark:hover:bg-meta-4"
+                       href="/admin#bottom" 
+                  >
 
-                  <div>
-                    <h6 className="text-sm font-medium text-black dark:text-white">
-                      Mariya Desoja
-                    </h6>
-                    <p className="text-sm">I like your confidence 💪</p>
-                    <p className="text-xs">2min ago</p>
-                  </div>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  className="flex gap-4.5 border-t border-stroke px-4.5 py-3 hover:bg-gray-2 dark:border-strokedark dark:hover:bg-meta-4"
-                  href="/messages"
-                >
-                  <div className="h-12.5 w-12.5 rounded-full">
-                    <Image
-                      width={112}
-                      height={112}
-                      src={"/images/user/user-01.png"}
-                      alt="User"
-                      style={{
-                        width: "auto",
-                        height: "auto",
-                      }}
-                    />
-                  </div>
+                    <div>
+                      <h6 className="text-sm font-medium text-black dark:text-white">
+                        New Chat Session
+                      </h6>
+                      <p className="text-sm line-clamp-1">
+                        {notification.message}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                        {formatTime(notification.timestamp)}
+                      </p>
+                    </div>
+                  </Link>
+                </li>
+              ))}
 
-                  <div>
-                    <h6 className="text-sm font-medium text-black dark:text-white">
-                      Robert Jhon
-                    </h6>
-                    <p className="text-sm">Can you share your offer?</p>
-                    <p className="text-xs">10min ago</p>
-                  </div>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  className="flex gap-4.5 border-t border-stroke px-4.5 py-3 hover:bg-gray-2 dark:border-strokedark dark:hover:bg-meta-4"
-                  href="/messages"
-                >
-                  <div className="h-12.5 w-12.5 rounded-full">
-                    <Image
-                      width={112}
-                      height={112}
-                      src={"/images/user/user-03.png"}
-                      alt="User"
-                      style={{
-                        width: "auto",
-                        height: "auto",
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <h6 className="text-sm font-medium text-black dark:text-white">
-                      Henry Dholi
-                    </h6>
-                    <p className="text-sm">I cam across your profile and...</p>
-                    <p className="text-xs">1day ago</p>
-                  </div>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  className="flex gap-4.5 border-t border-stroke px-4.5 py-3 hover:bg-gray-2 dark:border-strokedark dark:hover:bg-meta-4"
-                  href="/messages"
-                >
-                  <div className="h-12.5 w-12.5 rounded-full">
-                    <Image
-                      width={112}
-                      height={112}
-                      src={"/images/user/user-04.png"}
-                      alt="User"
-                      style={{
-                        width: "auto",
-                        height: "auto",
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <h6 className="text-sm font-medium text-black dark:text-white">
-                      Cody Fisher
-                    </h6>
-                    <p className="text-sm">I’m waiting for you response!</p>
-                    <p className="text-xs">5days ago</p>
-                  </div>
-                </Link>
-              </li>
-              <li>
-                <Link
-                  className="flex gap-4.5 border-t border-stroke px-4.5 py-3 hover:bg-gray-2 dark:border-strokedark dark:hover:bg-meta-4"
-                  href="/messages"
-                >
-                  <div className="h-12.5 w-12.5 rounded-full">
-                    <Image
-                      width={112}
-                      height={112}
-                      src={"/images/user/user-02.png"}
-                      alt="User"
-                      style={{
-                        width: "auto",
-                        height: "auto",
-                      }}
-                    />
-                  </div>
-
-                  <div>
-                    <h6 className="text-sm font-medium text-black dark:text-white">
-                      Mariya Desoja
-                    </h6>
-                    <p className="text-sm">I like your confidence 💪</p>
-                    <p className="text-xs">2min ago</p>
-                  </div>
-                </Link>
-              </li>
+              {chatNotifications.length === 0 && (
+                <li className="px-4.5 py-6 text-center">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    No new chat notifications
+                  </p>
+                </li>
+              )}
             </ul>
           </div>
         )}
-        {/* <!-- Dropdown End --> */}
       </li>
     </ClickOutside>
   );

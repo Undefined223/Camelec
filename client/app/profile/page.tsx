@@ -17,24 +17,24 @@ const Page: NextPage<Props> = ({ }) => {
             <Link href="/profile/informations" legacyBehavior>
                 <a>
                     <GlareCard className="flex flex-col items-center justify-center">
-                        <FontAwesomeIcon icon={faInfoCircle} className="w-12 h-12 text-white" />
-                        <p className="text-white font-bold text-xl mt-4">Informations</p>
+                        <FontAwesomeIcon icon={faInfoCircle} className="w-12 h-12 text-[#2CACD8] " />
+                        <p className="text-[#2CACD8]  font-bold text-xl mt-4">Informations</p>
                     </GlareCard>
                 </a>
             </Link>
             <Link href="/profile/addresses" legacyBehavior>
                 <a>
                     <GlareCard className="flex flex-col items-center justify-center">
-                        <FontAwesomeIcon icon={faAddressCard} className="w-12 h-12 text-white" />
-                        <p className="text-white font-bold text-xl mt-4">Addresses</p>
+                        <FontAwesomeIcon icon={faAddressCard} className="w-12 h-12 text-[#2CACD8] " />
+                        <p className="text-[#2CACD8]  font-bold text-xl mt-4">Addresses</p>
                     </GlareCard>
                 </a>
             </Link>
             <Link href="/profile/orders" legacyBehavior>
                 <a>
                     <GlareCard className="flex flex-col items-center justify-center">
-                        <FontAwesomeIcon icon={faClipboardList} className="w-12 h-12 text-white" />
-                        <p className="text-white font-bold text-xl mt-4">Orders</p>
+                        <FontAwesomeIcon icon={faClipboardList} className="w-12 h-12 text-[#2CACD8] " />
+                        <p className="text-[#2CACD8]  font-bold text-xl mt-4">Orders</p>
                     </GlareCard>
                 </a>
             </Link>

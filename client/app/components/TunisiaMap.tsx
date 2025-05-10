@@ -74,7 +74,7 @@ const TunisiaMap: React.FC<TunisiaMapProps> = ({ governatesData }) => {
       >
         <GeoJSON data={governatesData} style={styleFeature} onEachFeature={onEachFeature} />
 
-        <div className="absolute bottom-2 right-2 z-[1000] bg-white/90 p-2 rounded-lg shadow-lg text-xs">
+        <div className="absolute bottom-2 right-2 z-[15] bg-white/90 p-2 rounded-lg shadow-lg text-xs">
           <div className="grid grid-cols-1 gap-1">
             <div className="flex items-center gap-1">
               <span className="w-3 h-3 bg-[#0077b6]"></span>

@@ -1,4 +1,4 @@
-import { createContext, Dispatch, SetStateAction } from "react";
+import { createContext } from "react";
 
 interface User {
     _id: string;
@@ -7,7 +7,7 @@ interface User {
     pic: string;
     isAdmin: boolean;
     verified: boolean;
-    token: string
+    token: string;
 }
 
 interface Product {
@@ -23,7 +23,22 @@ interface Product {
     selectedColor?: string;
     quantity?: number;
     discount?: number;
-    color?: string; // Add the color property
+    color?: string;
+}
+
+// Renamed to avoid conflict with the browser's Notification interface
+interface AppNotification {
+    id: string;
+    message: string;
+    type: 'order' | 'delivery' | 'chat';
+    timestamp: Date;
+}
+
+interface Message {
+    id: string;
+    content: string;
+    sender: string;
+    timestamp: Date;
 }
 
 interface UserContextType {
@@ -33,6 +48,10 @@ interface UserContextType {
     setCartProducts: React.Dispatch<React.SetStateAction<Product[]>>;
     wishlist: Product[];
     setWishlist: React.Dispatch<React.SetStateAction<Product[]>>;
+    notifications: AppNotification[]; // Updated to use AppNotification
+    setNotifications: React.Dispatch<React.SetStateAction<AppNotification[]>>; // Updated
+    messages: Message[];
+    setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
     addToCart: (product: Product, color?: string, quantity?: number) => void;
     addToWishlist: (product: Product) => void;
     addAllToCart: () => void;
@@ -41,6 +60,12 @@ interface UserContextType {
     removeFromCart: (productId: string) => void;
     updateCartItemQuantity: (productId: string, newQuantity: number) => void;
     clearCart: () => void;
+    addNotification: (notification: AppNotification) => void; // Updated
+    removeNotification: (notificationId: string) => void;
+    clearNotifications: () => void;
+    addMessage: (message: Message) => void;
+    removeMessage: (messageId: string) => void;
+    clearMessages: () => void;
 }
 
 const UserContext = createContext<UserContextType>({
@@ -50,6 +75,10 @@ const UserContext = createContext<UserContextType>({
     setCartProducts: () => { },
     wishlist: [],
     setWishlist: () => { },
+    notifications: [],
+    setNotifications: () => { },
+    messages: [],
+    setMessages: () => { },
     addToCart: () => { },
     addToWishlist: () => { },
     addAllToCart: () => { },
@@ -57,8 +86,14 @@ const UserContext = createContext<UserContextType>({
     clearWishlist: () => { },
     removeFromCart: () => { },
     updateCartItemQuantity: () => { },
-    clearCart: () => {},
+    clearCart: () => { },
+    addNotification: () => { },
+    removeNotification: () => { },
+    clearNotifications: () => { },
+    addMessage: () => { },
+    removeMessage: () => { },
+    clearMessages: () => { },
 });
 
 export default UserContext;
-export type { User, Product };
+export type { User, Product, AppNotification, Message }; // Updated export

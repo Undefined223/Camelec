@@ -4,6 +4,7 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet'; // Import Leaflet for custom icons
 import 'leaflet/dist/leaflet.css'; // Import Leaflet CSS
 import UserContext from '../context/InfoPlusProvider';
+import socket from '../utils/socket';
 
 interface Location {
   latitude: number;
@@ -24,26 +25,30 @@ const deliveryIcon = new L.Icon({
 
 const DeliveryMap: React.FC<DeliveryMapProps> = ({ orderId }) => {
   const [location, setLocation] = useState<Location | null>(null);
-  const socket: Socket = io(process.env.NEXT_PUBLIC_API_BASE_URL); // Replace with your server URL
   const { user } = useContext(UserContext);
 
   useEffect(() => {
-    if (orderId) {
-      console.log('Joining delivery room:', { orderId, userId: user?._id });
-      socket.emit('joinDeliveryRoom', { orderId, userId: user?._id });
-
-      socket.on('locationUpdated', ({ orderId: updatedOrderId, location }) => {
+    if (orderId && user?._id) {
+      console.log('Joining delivery room:', { orderId, userId: user._id });
+      socket.emit('joinDeliveryRoom', { orderId, userId: user._id });
+  
+      const handleLocationUpdate = ({ orderId: updatedOrderId, location }: 
+      { orderId: string, location: Location }) => {
         console.log('Location updated:', { updatedOrderId, location });
         if (updatedOrderId === orderId) {
           setLocation(location);
         }
-      });
-
+      };
+  
+      socket.on('locationUpdated', handleLocationUpdate);
+  
       return () => {
-        socket.disconnect();
+        // Remove the event listener when component unmounts
+        socket.off('locationUpdated', handleLocationUpdate);
+        console.log('Cleaned up locationUpdated listener');
       };
     }
-  }, [orderId, socket, user?._id]);
+  }, [orderId, user?._id]); // Remove socket from dependencies
 
   if (!location) {
     return <p>Loading location...</p>;

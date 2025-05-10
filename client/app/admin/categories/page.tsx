@@ -334,25 +334,25 @@ const Page: NextPage<Props> = () => {
                                                 </tr>
                                             )}
                                             {category.subCategory.map((subCat) => (
-                                                <tr key={subCat._id} className="hover:bg-gray-50 transition duration-300">
-                                                    <td className="px-6 py-4 text-sm text-gray-500 pl-12">{subCat._id}</td>
+                                                <tr key={subCat?._id} className="hover:bg-gray-50 transition duration-300">
+                                                    <td className="px-6 py-4 text-sm text-gray-500 pl-12">{subCat?._id}</td>
                                                     <td className="px-6 py-4 text-sm text-gray-500">
-                                                        {editingSubcategoryId === subCat._id ? (
+                                                        {editingSubcategoryId === subCat?._id ? (
                                                             <input
                                                                 type="text"
                                                                 value={newSubcategoryName}
                                                                 onChange={handleSubcategoryInputChange}
-                                                                onKeyPress={(e) => handleSubcategoryKeyPress(e, subCat._id)}
-                                                                onBlur={() => handleSubcategoryBlur(subCat._id)}
+                                                                onKeyPress={(e) => handleSubcategoryKeyPress(e, subCat?._id)}
+                                                                onBlur={() => handleSubcategoryBlur(subCat?._id)}
                                                                 className="w-full px-2 py-1 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 transition duration-300"
                                                                 autoFocus
                                                             />
                                                         ) : (
                                                             <div
-                                                                onDoubleClick={() => handleSubcategoryDoubleClick(subCat._id, subCat.name)}
+                                                                onDoubleClick={() => handleSubcategoryDoubleClick(subCat?._id, subCat?.name)}
                                                                 className="cursor-pointer"
                                                             >
-                                                                {subCat.name} <span className="text-xs text-gray-400">(Subcategory)</span>
+                                                                {subCat?.name} <span className="text-xs text-gray-400">(Subcategory)</span>
                                                             </div>
                                                         )}
                                                     </td>

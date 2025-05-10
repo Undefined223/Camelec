@@ -1,12 +1,15 @@
 const asyncHandler = require("express-async-handler");
 const Chat = require("../models/chatModel");
 const User = require("../models/userModel");
+const { emitToAdmins, isIoReady } = require("../utils/SocketUtils");
 
 // @description     Create or Access a Chat
 // @route           POST /api/chat/
 // @access          Protected
 const accessChat = asyncHandler(async (req, res) => {
   const { userId } = req.body;
+  console.log("✅ accessChat function triggered");
+
 
   if (!userId && !req.user) {
     return res.status(400).json({
@@ -29,7 +32,25 @@ const accessChat = asyncHandler(async (req, res) => {
         .populate("users", "-password")
         .populate("latestMessage");
 
+
+        console.log("🟢 Checking if IO is ready:", isIoReady());
+        
+        if (isIoReady()) {
+          console.log("🟢 IO is ready, attempting to emit event...");
+          emitToAdmins('newChatNotification', {
+            chatId: fullChat._id,
+            message: `New AI chat created by ${req.user.name}`,
+          });
+          console.log("✅ emitToAdmins function executed");
+        } else {
+          console.error("❌ IO is NOT ready, event not emitted");
+        }
+        
+        
+
       return res.status(200).json(fullChat);
+
+      
     }
 
     // Find existing chat between users
@@ -62,6 +83,10 @@ const accessChat = asyncHandler(async (req, res) => {
       const createdChat = await Chat.create(chatData);
       const fullChat = await Chat.findOne({ _id: createdChat._id })
         .populate("users", "-password");
+
+
+        // Ensure Socket.IO is ready before emitting
+      
 
       res.status(200).json(fullChat);
     }

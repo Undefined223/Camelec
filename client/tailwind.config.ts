@@ -1,10 +1,12 @@
 import type { Config } from "tailwindcss";
 import defaultTheme from "tailwindcss/defaultTheme";
-import flattenColorPalette from "tailwindcss/lib/util/flattenColorPalette";
 import forms from "@tailwindcss/forms";
 import typography from "@tailwindcss/typography";
 import plugin from "tailwindcss/plugin";
 const colors = require("tailwindcss/colors");
+const {
+  default: flattenColorPalette,
+} = require("tailwindcss/lib/util/flattenColorPalette");
 
 const config: Config = {
   content: [
@@ -28,6 +30,7 @@ const config: Config = {
       ...defaultTheme.screens,
     },
     extend: {
+
       colors: {
         current: "currentColor",
         transparent: "transparent",
@@ -45,8 +48,8 @@ const config: Config = {
         bodydark: "#AEB7C0",
         bodydark1: "#DEE4EE",
         bodydark2: "#8A99AF",
-        primary: "#3C50E0",
-        secondary: "#80CAEE",
+        primary: "#FFFFFF",
+        secondary: "#2CACD8",
         stroke: "#E2E8F0",
         gray: {
           ...colors.gray,
@@ -260,13 +263,18 @@ const config: Config = {
       content: {
         "icon-copy": 'url("../images/icon/icon-copy-alt.svg")',
       },
-      transitionProperty: { width: "width", stroke: "stroke" },
+      transitionProperty: { 
+        width: "width", 
+        stroke: "stroke",
+       opacity: "opacity" 
+      },
       borderWidth: {
         6: "6px",
         10: "10px",
         12: "12px",
       },
       boxShadow: {
+        input: `0px 2px 3px -1px rgba(0,0,0,0.1), 0px 1px 0px 0px rgba(25,28,33,0.02), 0px 0px 0px 1px rgba(25,28,33,0.08)`,
         default: "0px 8px 13px -3px rgba(0, 0, 0, 0.07)",
         card: "0px 1px 3px rgba(0, 0, 0, 0.12)",
         "card-2": "0px 1px 2px rgba(0, 0, 0, 0.05)",
@@ -300,6 +308,17 @@ const config: Config = {
       keyframes: {
         linspin: {
           "100%": { transform: "rotate(360deg)" },
+        },
+        'electric-pulse': {
+          '0%, 100%': {
+            transform: 'scale(1)',
+            opacity: '0.4',
+          },
+          '50%': {
+            transform: 'scale(1.05)',
+            opacity: '0.2',
+            filter: 'blur(8px)',
+          },
         },
         easespin: {
           "12.5%": { transform: "rotate(135deg)" },
@@ -343,6 +362,7 @@ const config: Config = {
         },
       },
       animation: {
+        'electric-pulse': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
         linspin: "linspin 1568.2353ms linear infinite",
         easespin: "easespin 5332ms cubic-bezier(0.4, 0, 0.2, 1) infinite both",
         "left-spin":
@@ -374,8 +394,12 @@ const config: Config = {
       },
     },
   },
+  
+  
   plugins: [
+    
     forms,
+    addVariablesForColors,
     typography,
     plugin(({ addUtilities, theme }) => {
       const colors = flattenColorPalette(theme("colors"));
@@ -385,9 +409,27 @@ const config: Config = {
           [`.placeholder-${color}::placeholder`]: { color: colors[color] },
         }));
 
+        
       addUtilities(Object.assign({}, ...colorMap));
+
+
+
+   
+
     }),
   ],
+
+  
 };
+function addVariablesForColors({ addBase, theme }: any) {
+  let allColors = flattenColorPalette(theme("colors"));
+  let newVars = Object.fromEntries(
+    Object.entries(allColors).map(([key, val]) => [`--${key}`, val])
+  );
+ 
+  addBase({
+    ":root": newVars,
+  });
+}
 
 export default config;
